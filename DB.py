@@ -9,44 +9,26 @@ Base = declarative_base()
 class Session(Base):
     __tablename__ = 'session'
     ID = Column(Integer, primary_key = True, autoincrement = True)
-    BID = Column(Integer)
-    ID_RFID = Column(String, index = True)
     ID_Reneco  = Column(String, index = True)
-    Species = Column(String)
-    Gender = Column(Integer)
-    Age = Column(Integer)
+    ID_RFID = Column(String, index = True)
+    Position = Column(String)
     Date_Session = Column(DateTime)
-    WeightMinPath = Column(Float)
-    WeightMaxPath = Column(Float)
-    WeightMinImp = Column(Float)
-    WeightMaxImp = Column(Float)
-    Weight = Column(Float)
+    WeightMinPath = Column(Integer)                                      
+    WeightMaxPath = Column(Integer)
+    WeightMinImp = Column(Integer)
+    WeightMaxImp = Column(Integer)
     Date = Column(DateTime)
+    Weight = Column(Integer)
+    Note = Column(String)
     def __repr__(self):
-        return "<Session(ID = '%s', BID = '%s', ID_RFID = '%s', ID_Reneco = '%s', Species = '%s', Gender = '%s', Age = '%s', Date_Session = '%s', WeightMinPath = '%s', WeightMaxPath = '%s', WeightMinImp = '%s', WeightMaxImp = '%s', Weight = '%s', Date = '%s')>" % (
-            self.ID, self.BID, self.ID_RFID, self.ID_Reneco, self.Species, self.Gender, self.Age, self.Date_Session, self.WeightMinPath, self.WeightMaxPath, self.WeightMinImp, self.WeightMaxImp, self.Weight, self.Date)
-
-
-class Story(Base):
-    __tablename__ = 'story'
-    ID = Column(Integer, primary_key = True, autoincrement = True)
-    ID_RFID = Column(String, index = True)
-    ID_Reneco  = Column(String, index = True)
-    Last_Weight = Column(Float)
-    Penultimate_Weight = Column(Float)
-    Antepenultimate_Weight = Column(Float)
-    Last_Date = Column(DateTime)
-    Penultimate_Date = Column(DateTime)
-    Antepenultimate_Date = Column(DateTime)
-    def __repr__(self):
-        return "<Story(ID = '%s', ID_RFID = '%s', ID_Reneco = '%s', Last_Weight = '%s', Penultimate_Weight = '%s', Antepenultimate_Weight = '%s', Last_Date = '%s', Penultimate_Date = '%s', Antepenultimate_Date = '%s')>" % (
-            self.ID, self.ID_RFID, self.ID_Reneco, self.Last_Weight, self.Penultimate_Weight, self.Antepenultimate_Weight, self.Last_Date, self.Penultimate_Date, self.Antepenultimate_Date)
+        return "<Session(ID = '%s', ID_Reneco = '%s', ID_RFID = '%s', Position = '%s',  Date_Session = '%s', WeightMinPath = '%s', WeightMaxPath = '%s', WeightMinImp = '%s', WeightMaxImp = '%s', Date = '%s', Weight = '%s', Note = '%s')>" % (
+            self.ID, self.ID_Reneco, self.ID_RFID, self.Position, self.Date_Session, self.WeightMinPath, self.WeightMaxPath, self.WeightMinImp, self.WeightMaxImp, self.Date, self.Weight, self.Note)
 
 
 class Log(Base):
     __tablename__ = 'log'
     ID = Column(Integer, primary_key = True, autoincrement = True)
-    Date = Column(String)
+    Date = Column(DateTime)
     Comment = (String)
     def __repr__(self):
         return "<Log(ID = '%s', Date = %s, Comment = %s)>" % (
@@ -55,9 +37,11 @@ class Log(Base):
 
             
 ########################################################################################################################################################################################################################################
+dbPath = '/home/pi/Share/Public/releve.db'
+
 
 def createDB(dbPath):
-    engine = create_engine('sqlite:///%s' % dbPath) #Connexion de la base de donnees
+    engine = create_engine('sqlite:///%s' %dbPath) #Connexion de la base de donnees
     session = sessionmaker(bind = engine)
     Base.metadata.create_all(engine)
     return session()

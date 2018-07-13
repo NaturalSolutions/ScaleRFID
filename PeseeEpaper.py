@@ -32,19 +32,24 @@ import epd2in9
 import PIL
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 import tm1637
-
+ 
 
 ########################################################################################################################################################################
 
 "Variables globales"
 
-languageChoice = 1
-readerChoice = 0
-Weight = ""
+
 dbPath = '/home/pi/Share/Public/releve.db'
 csvInPath = '/home/pi/Share/Public/data.csv'
 csvOutPath = '/home/pi/Share/Public/releve.csv'
-dbSession = None
+
+Ink_Ring = ""
+Ink_Position = ""
+Ink_Weight = ""
+Ink_State = ""
+
+readerChoice = 0
+Weight = ""
 
 ######################################################################################################################################################################
 
@@ -61,31 +66,6 @@ led = tm1637.TM1637(CLK=21, DIO=20, brightness=7.0)
 led.ShowDoublepoint(False)
 
 
-###################################################################################################################################################################
-
-"Configurations"
-
-
-try:
-      serLec = serial.Serial('/dev/ttyUSB0', 9600, timeout = 1) #Lecteur Biolog par câble
-      readerChoice = 0
-except serial.SerialException:
-      serLec = serial.Serial('/dev/ttyACM0', 9600, timeout = 1) #Lecteur Faread Trovan par câble
-      readerChoice = 1
-serLec.close() #Fermeture des ports pour les ouvrir seulement quand nécessaire pour eviter le stack de données
-
-
-
-dbExists = os.path.isfile(dbPath)
-session = DB.createDB(dbPath)
-if not dbExists:
-      ImportDB.fillDB(session, csvInPath)
-s = session
-
-#####################################################################################################################################################
-
-date_access = DB.Log(Date = datetime.datetime.now())
-s.add(date_access)
 
 ###################################################################################################################################################################
 
@@ -111,10 +91,7 @@ GPIO.add_event_detect(5, GPIO.FALLING, bouncetime = 500)"""
 """GPIO.setup(5, GPIO.IN, pull_up_down = GPIO.PUD_UP)
 GPIO.add_event_detect(5, GPIO.FALLING, bouncetime = 500)"""
 
-###########################################################################################################################################################
 
-"""for key in ['0','1','2','3','4','5','6','7','8','9',',','à','&','é','"',"'",'(','-','è','_','ç','à',';','.']:
-      root.bind_all(key,pushKey)"""
                                                                                                                                        
 #################################################################################################################################################################################
 
@@ -201,14 +178,15 @@ def recupWeight(Weight):
       return WeightDB
 
 
-def ink(ring,weight, state):
+def ink(ring, position, weight, state):
       foo = Image.new('RGB', (296,128), color = "white")
       draw1 = ImageDraw.Draw(foo)
       font1 = ImageFont.truetype("arial.ttf", 34)
       font2 = ImageFont.truetype("arial.ttf", 54)
-      draw1.text((00,00)," "+ring, fill = 0, font = font1)
-      draw1.text((00,35), " "+weight, fill = 0, font = font1)
-      draw1.text((00,70), " "+ state + "g", fill = 0, font = font2)
+      draw1.text((00,00), " " + ring, fill = 0, font = font1)
+      draw1.text((00,15), " " + position, fill = 0, font = font1)
+      draw1.text((00,35), " " + weight, fill = 0, font = font1)
+      draw1.text((00,70), " " + state + "g", fill = 0, font = font2)
       foo = foo.rotate(90)
       foo.save('1.jpg')
       image = Image.open('1.jpg')
@@ -228,12 +206,55 @@ def reset():
       epd.display_frame()
       led.Clear()
       led.Show([0, 0, 0, 0])
+      
+      
+###################################################################################################################################################################
+
+"Configurations"
 
 
+dbExists = os.path.isfile(dbPath)
+session = DB.createDB(dbPath)
+if not dbExists:
+      ImportDB.fillDB(session, csvInPath)
+      ExportDB.export(dbPath,csvOutPath)
+      ExportDB.convertExcel(csvOutPath)
+s = session
+
+
+#####################################################################################################################################################
+
+date_access = DB.Log(Date = datetime.datetime.now())
+s.add(date_access)
+
+
+################################################################################################################################
+"""Vérificaion date de la base de données"""
+
+Ink_Ring = ""
+Ink_Position = ""
+Ink_Weight = ""
+Ink_State = ""
+
+
+
+if s.query(DB.Log).filter(DB.Log.ID == '1').first().Date.date() != datetime.date.today():
+      Ink_State = "Database Outdated"
+      ink(Ink_Ring, Ink_Position, Ink_Weight, Ink_State)
+      sys.exit()
+
+try:
+      serLec = serial.Serial('/dev/ttyUSB0', 9600, timeout = 1) #Lecteur Biolog par câble
+      readerChoice = 0
+except serial.SerialException:
+      Ink_State = "RFID Reader Disconnected"
+      ink(Ink_Ring, Ink_Position, Ink_Weight, Ink_State)
+      sys.exit()
+      
+      
+serLec.close() #Fermeture des ports pour les ouvrir seulement quand nécessaire pour eviter le stack de données
+      
 reset()
-
-print("Start")
-
 
 #######################################################################################################################################################         
 def main():
@@ -246,6 +267,7 @@ def main():
                   serLec.close()
                   if uid: #Si on détecte un uid
                         Ink_Ring = ""
+                        Ink_Position = ""
                         Ink_Weight = ""
                         Ink_State = ""
                         flagLec = False
@@ -253,25 +275,19 @@ def main():
                         strUid = recupUID(uid)
                         persoData = s.query(DB.Session).filter(DB.Session.ID_RFID == str(strUid).strip()).first() #Recherche de l'individu dans la database et recuperation de ses infos
                         result = testIfEntryExists(persoData) #Test avec la fonction avant
-                        ID_Ring = persoData.ID_Reneco
-                        print(ID_Ring)
-                        ink(ID_Ring, Ink_Weight, Ink_State)
+                        Ink_Ring = persoData.ID_Reneco
+                        ink(Ink_Ring, Ink_Position, Ink_Weight, Ink_State)
                         if(result["isNew"]):
                               flagBal = True
                               Weight = ""
-                              time.sleep(3)
                               while flagBal: #Boucle de lecture de la balance
-                                    """serBal.open()"""
-                                    Weight = "5000"
-                                    """serBal.close()"""
-                                    time.sleep(10)
+                                    time.sleep(1)
+                                    Weight = input()
                                     if Weight:
                                           flagBal = False
                                           print Weight
                                           strWeight = str(Weight) #Conversion binaire to string pour pce
-                                          intWeight = int(re.findall("\d+", strWeight)[0]) #On garde que le nombre en floatpour pc
-                                          """print int(Weight[0])
-                                          digits = [int(Weight[0]), int(Weight[1]), int(Weight[2]),int(Weight[3])]"""
+                                          intWeight = int(re.findall("\d+", strWeight)[0]) #On garde que le nombre int
                                           strWeight = str(intWeight)
                                           ln = len(strWeight)
                                           if ln == 3:
@@ -293,15 +309,15 @@ def main():
                                                 print valid
                                                 if (valid == State.accepted):
                                                       Ink_State = "OKAY"
-                                                      ink(ID_Ring, Ink_Weight, Ink_State)
+                                                      ink(Ink_Ring, Ink_Position, Ink_Weight, Ink_State)
                                                       s.query(DB.Session).filter(DB.Session.ID_RFID == persoData.ID_RFID).update({"Weight" : WeightDB, "Date" : datetime.datetime.now()})
                                                       s.commit()
                                                 if (valid == State.pendingLow or valid == State.pendingHigh):
                                                       if valid == State.pendingLow:
-                                                            Ink_State = "Low"
+                                                            Ink_State = "LOW WEIGHT - VALIDATE ?"
                                                       if valid == State.pendingHigh:
-                                                            Ink_State = "High"
-                                                      ink(ID_Ring, Ink_Weight, Ink_State)
+                                                            Ink_State = "HIGH WEIGHT - VALIDATE ?"
+                                                      ink(Ink_Ring, Ink_Position, Ink_Weight, Ink_State)
                                                       flagVal = True
                                                       while flagVal:
                                                             if GPIO.event_detected(12):    
@@ -309,21 +325,19 @@ def main():
                                                             if GPIO.event_detected(6):
                                                                   flagVal = False
                                                                   Ink_State = "OKAY"
-                                                                  ink(ID_Ring, Ink_Weight, Ink_State)
+                                                                  ink(Ink_Ring, Ink_Position, Ink_Weight, Ink_State)
                                                                   s.query(DB.Session).filter(DB.Session.ID_RFID == persoData.ID_RFID).update({"Weight" : WeightDB, "Date" : datetime.datetime.now()})
                                                                   s.commit()
                                                             if GPIO.event_detected(5):
                                                                   flagVal = False
                                                                   Ink_State = "ERROR"
-                                                                  ink(ID_Ring, Ink_Weight, Ink_State)
-
+                                                                  ink(Ink_Ring, Ink_Position, Ink_Weight, Ink_State)
                                                 if (valid == State.rejeted):
                                                       Ink_State = "ERROR"
-                                                      ink(ID_Ring, Ink_Weight, Ink_State)
-                                          
+                                                      ink(Ink_Ring, Ink_Position, Ink_Weight, Ink_State)
                         else:
                               Ink_State = "ERROR"
-                              ink(ID_Ring, Ink_Weight, Ink_State)
+                              ink(Ink_Ring, Ink_Position, Ink_Weight, Ink_State)
             ExportDB.export(dbPath, csvOutPath)
             flagReset = True
             time.sleep(10)
@@ -331,7 +345,6 @@ def main():
             """while flagReset:
                   if GPIO.event_detected(36):
                         flagReset = False"""
-            print ("ok")
 
 if __name__ == '__main__':
     main()

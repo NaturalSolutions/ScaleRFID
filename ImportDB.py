@@ -1,5 +1,5 @@
 #!/usr/bin/python 
-# -*- coding:utf-8 -*-
+# -*- coding: utf-8 -*-
 
 
 from sqlalchemy.ext.declarative import declarative_base
@@ -10,7 +10,9 @@ import datetime
 import pymssql
 import DB
 import csv
-import time 
+import time
+import codecs
+
 
 
 def fillDB(dbSession, data):
@@ -19,20 +21,22 @@ def fillDB(dbSession, data):
 
     print('Processing csv data file')
     ifile = open(data, 'r')
-    read = csv.reader(ifile)
+    read = csv.reader(ifile, delimiter = ';')
 
     for row in read:
-        if row[5] == "Unk":
-            row[5] = "0"
-        ses = DB.Session(BID = row[1], ID_RFID = row[2], ID_Reneco = row[3], Species = row[4], Gender = row[5],  Age = row[6], Date_Session = datetime.datetime.now(), WeightMinPath = float(row[7].replace(',','.')), WeightMaxPath = float(row[8].replace(',','.')), WeightMinImp = float(row[9].replace(',','.')), WeightMaxImp = float(row[10].replace(',','.')))
+        
+        ses = DB.Session( ID_Reneco = row[0], ID_RFID = row[1], Position = row[2].decode('iso-8859-1') , Date_Session =  datetime.datetime.strptime(row[3], '%Y-%m-%d'), WeightMinPath = row[4], WeightMaxPath = row[5], WeightMinImp = row[6], WeightMaxImp = row[7])
         dbSession.add(ses)
         dbSession.commit()
 
-    print("Break Time !")
-    time.sleep(2)
 
-    date_creation = DB.Comment(Date = datetime.datetime.now())
-    s.add(date_creation)
+    print("Break Time !")
+    time.sleep(1)
+
+    date_creation = DB.Log(Date = datetime.datetime.now())
+    dbSession.add(date_creation)
 
     print('Ending creation')
     
+if __name__ == '__main__':
+    fillDB()
