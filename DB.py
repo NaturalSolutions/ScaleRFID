@@ -1,8 +1,13 @@
+#!/usr/bin/python 
+# -*- coding:utf-8 -*-
+
+
+import glob
+import os
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import *
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.schema import Index
-
 
 Base = declarative_base()
 
@@ -37,11 +42,14 @@ class Log(Base):
 
             
 ########################################################################################################################################################################################################################################
-dbPath = '/home/pi/Share/Public/releve.db'
 
+list_of_files = glob.glob('/home/pi/Share/Public/*.db') # * means all if need specific format then *.csv
+latest_file = max(list_of_files, key=os.path.getctime)
+dbPath = str(latest_file)
 
 def createDB(dbPath):
     engine = create_engine('sqlite:///%s' %dbPath) #Connexion de la base de donnees
     session = sessionmaker(bind = engine)
     Base.metadata.create_all(engine)
     return session()
+    
