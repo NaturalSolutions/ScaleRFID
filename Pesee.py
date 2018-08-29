@@ -362,36 +362,36 @@ def main():
                                                 Ink_Weight = strWeight
                                                 if (valid == classState.State.accepted):
                                                       print("9.1")
-                                                      Ink_State = "OKAY"
+                                                      Ink_State = "OK"
                                                       ink(Ink_Ring, Ink_Position, Ink_Weight, Ink_State)
                                                       s.query(DB.Session).filter(DB.Session.ID_RFID == persoData.ID_RFID).update({"Weight" : WeightDB, "Date" : datetime.datetime.now()})
                                                       s.commit()
                                                 if (valid == classState.State.pendingLow or valid == classState.State.pendingHigh):
                                                       print("9.2")
                                                       if valid == classState.State.pendingLow:
-                                                            Ink_State = "INVALID LOW WEIGHT"
+                                                            Ink_State = "WEIGHT_TOO_LOW"
                                                       if valid == classState.State.pendingHigh:
-                                                            Ink_State = "INVALID HIGH WEIGHT"
+                                                            Ink_State = "WEIGHT_TOO_HIGH"
                                                       ink(Ink_Ring, Ink_Position, Ink_Weight, Ink_State)
                                                       flagVal = True
                                                       p = inkey()
                                                       while flagVal:
                                                             if p == "y":
                                                                   flagVal = False
-                                                                  Ink_State = "OKAY"
+                                                                  Ink_State = "OK"
                                                                   ink(Ink_Ring, Ink_Position, Ink_Weight, Ink_State)
                                                                   s.query(DB.Session).filter(DB.Session.ID_RFID == persoData.ID_RFID).update({"Weight" : WeightDB, "Date" : datetime.datetime.now()})
                                                                   s.commit()
                                                             if p == "n":
                                                                   flagVal = False
-                                                                  Ink_State = "CANCELLED"
+                                                                  Ink_State = "WEIGHT_CANCELLED"
                                                                   ink(Ink_Ring, Ink_Position, Ink_Weight, Ink_State)
                                                 if (valid == classState.State.rejeted):
                                                       print("9.3")
-                                                      Ink_State = "CANCELLED"
+                                                      Ink_State = "IMPOSSIBLE_WEIGHT"
                                                       ink(Ink_Ring, Ink_Position, Ink_Weight, Ink_State)
                         else:
-                              Ink_State = "CANCELLED"
+                              Ink_State = "ERROR"
                               ink(Ink_Ring, Ink_Position, Ink_Weight, Ink_State)
             Export.export(dbPath)
             time.sleep(5)
