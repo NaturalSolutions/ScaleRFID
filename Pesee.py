@@ -80,11 +80,10 @@ Ink_Position = ""
 Ink_Weight = ""
 Ink_State = ""
 
-readerChoice = 0
+
 Weight = ""
 
-                                                                                                       
-
+                                                                                                      
 ####################################################################################################################################################################
 
 def pushKey(event):
@@ -135,23 +134,14 @@ def conversionAzertyQwerty(strWeight):
       return strWeight
 
 def recupUID(uid):
-      #RécupérationUID
-      global readerChoice
-      strUid = str(uid) #Conversion binaire to string
-      if readerChoice == 0:
-            if len(strUid) == 31:
-                  strUid = re.findall("\d+\ \d+", strUid)[0]
-                  strUid = strUid.replace(" ","")
-            if len(strUid) == 27:
-                  strUid = strUid[9:24]      
-      if readerChoice == 1:
-            if len(strUid) == 14:
-                  strUid = strUid.replace(" ","")
-                  strUid = strUid[2:12]
-            if len(strUid) == 20:
-                  strUid = strUid.replace(" ","")
-                  strUid = strUid[2:17]
-      return strUid
+      uid = str(uid)
+      start = '$A0112OKD'
+      end = '#'
+      uid = (uid.split(start))[1].split(end)[0]
+      uid = uid[0:15]
+      print uid
+ 
+      return uid
 
 def recupWeight(Weight):
       global languageChoice
@@ -251,8 +241,7 @@ Ink_State = ""
       sys.exit()"""
 
 try:
-      serLec = serial.Serial('/dev/ttyUSB0', 9600, timeout = 1) #Lecteur Biolog par câble
-      readerChoice = 0
+      serLec = serial.Serial('/dev/ttyUSB0', 9600, timeout = 1) #Lecteur 
 except serial.SerialException:
       faa = Image.new('RGB', (296,128), color = "white")
       draw1 = ImageDraw.Draw(faa)
@@ -282,45 +271,32 @@ def main():
             Export.export(dbPath)
             serLec.close()
             flagLec = True
+            print('2')
             while flagLec: #Boucle de lecture du scanner
+                  print('3')
                   serLec.open()      
-                  uid = serLec.readline()
+                  uid = serLec.readline(100)
                   serLec.close()
                   if uid: #Si on détecte un uid
+                        flagLec = False
+                        serLec.close()
                         Ink_Ring = ""
                         Ink_Position = ""
                         Ink_Weight = ""
-                        Ink_State = ""
-                        flagLec = False
-                        serLec.close()
+                        Ink_State = ""            
+                        print(uid)
                         strUid = recupUID(uid)
 
+
                         persoData = s.query(DB.Session).filter(DB.Session.ID_RFID == str(strUid).strip()).first() #Recherche de l'individu dans la database et recuperation de ses infos
+                        print(persoData)
 
-                        
-                        try:
-                              Ink_Weight = str(persoData.Weight)
-                              print Ink_Weight
-                              if Ink_Weight != 'None':
-                                    faa = Image.new('RGB', (296,128), color = "white")
-                                    draw1 = ImageDraw.Draw(faa)
-                                    font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",20)
-                                    draw1.text((00,00), "ERROR ", fill = 100, font = font1)
-                                    draw1.text((00,30), "Bird Already Weighed", fill = 100, font = font1)
-                                    faa = faa.rotate(270)
-                                    faa.save('1.jpg')
-                                    image = Image.open('1.jpg')
-                                    epd.set_frame_memory(image, 0, 0)
-                                    epd.display_frame()
-                                    epd.set_frame_memory(image, 0, 0)
-                                    epd.display_frame()
-                                    break
-
-                        except AttributeError:
+                        if str(persoData) == 'None':
                               faa = Image.new('RGB', (296,128), color = "white")
                               draw1 = ImageDraw.Draw(faa)
                               font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",20)
                               draw1.text((00,00), "ERROR", fill = 100, font = font1)
+                              draw1.text((00,30), "Bird Chip Not In Database", fill = 100, font = font1)
                               faa = faa.rotate(270)
                               faa.save('1.jpg')
                               image = Image.open('1.jpg')
@@ -328,11 +304,10 @@ def main():
                               epd.display_frame()
                               epd.set_frame_memory(image, 0, 0)
                               epd.display_frame()
-                              break
-
+                              break  
 
                         try:
-                              Ink_Ring = str(persoData.ID_Reneco)
+                              Ink_Ring = str(persoData.ID_Reneco) #test en double
                         except AttributeError:
                               faa = Image.new('RGB', (296,128), color = "white")
                               draw1 = ImageDraw.Draw(faa)
@@ -364,10 +339,44 @@ def main():
                               epd.set_frame_memory(image, 0, 0)
                               epd.display_frame()
                               break
+ 
+                        try:
+                              Ink_Weight = str(persoData.Weight)
+                              if Ink_Weight != 'None':
+                                    faa = Image.new('RGB', (296,128), color = "white")
+                                    draw1 = ImageDraw.Draw(faa)
+                                    font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",20)
+                                    draw1.text((00,00), "ERROR", fill = 100, font = font1)
+                                    draw1.text((00,30), "Bird Already Weighted", fill = 100, font = font1)
+                                    faa = faa.rotate(270)
+                                    faa.save('1.jpg')
+                                    image = Image.open('1.jpg')
+                                    epd.set_frame_memory(image, 0, 0)
+                                    epd.display_frame()
+                                    epd.set_frame_memory(image, 0, 0)
+                                    epd.display_frame()
+                                    break
+                              if Ink_Weight == 'None':
+                                    Ink_Weight = ""
+                        except AttributeError:
+                              faa = Image.new('RGB', (296,128), color = "white")
+                              draw1 = ImageDraw.Draw(faa)
+                              font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",20)
+                              draw1.text((00,00), "ERROR", fill = 100, font = font1)
+                              draw1.text((00,30), "Bird Chip Not In Database", fill = 100, font = font1)
+                              faa = faa.rotate(270)
+                              faa.save('1.jpg')
+                              image = Image.open('1.jpg')
+                              epd.set_frame_memory(image, 0, 0)
+                              epd.display_frame()
+                              epd.set_frame_memory(image, 0, 0)
+                              epd.display_frame()
+                              break  
+
 
                         print(Ink_Ring)
                         print(Ink_Position)
-                        Ink_Weight = ""
+                        print(Ink_Weight)
                         ink(Ink_Ring, Ink_Position, Ink_Weight, Ink_State)
                         result = testIfEntryExists(persoData) 
 
@@ -381,7 +390,6 @@ def main():
                                     except EOFError:
                                           pass
                                     if Weight:
-                                          print Weight
                                           flagBal = False
                                           strWeight = str(Weight) #Conversion binaire to string pour pce
                                           print strWeight
@@ -421,19 +429,30 @@ def main():
                                                       Ink_State = "IMPOSSIBLE WEIGHT"
                                                       ink(Ink_Ring, Ink_Position, Ink_Weight, Ink_State)
                         else:
-                              Ink_State = "ERROR"
-                              ink(Ink_Ring, Ink_Position, Ink_Weight, Ink_State)
+                              faa = Image.new('RGB', (296,128), color = "white")
+                              draw1 = ImageDraw.Draw(faa)
+                              font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",30)
+                              draw1.text((00,00), "ERROR", fill = 100, font = font1)
+                              faa = faa.rotate(270)
+                              faa.save('1.jpg')
+                              image = Image.open('1.jpg')
+                              epd.set_frame_memory(image, 0, 0)
+                              epd.display_frame()
+                              epd.set_frame_memory(image, 0, 0)
+                              epd.display_frame()
+                              break   
+            print('fin')
             Export.export(dbPath)
             time.sleep(5)
 
 
 if __name__ == '__main__':
-      while True:
+      main()
+      '''while True:
             try:
                   main()
             except KeyboardInterrupt:
                   sys.exit()
             except:
-                  pass
-            '''else: 
-                  break'''
+                  pass'''
+
