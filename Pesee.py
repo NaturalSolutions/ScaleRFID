@@ -63,9 +63,6 @@ epd.set_frame_memory(image, 0, 0)
 epd.display_frame()
 
 
-time.sleep(3)
-
-
 
 ########################################################################################################################################################################
 
@@ -186,7 +183,7 @@ def reset():
       faa = Image.new('RGB', (296,128), color = "white")
       draw1 = ImageDraw.Draw(faa)
       font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",34)
-      draw1.text((00,00), "SCAN", fill = 100, font = font1)
+      draw1.text((00,00), "READY", fill = 100, font = font1)
       faa = faa.rotate(270)
       faa.save('1.jpg')
       image = Image.open('1.jpg')
@@ -208,7 +205,7 @@ if dbExists == False:
       draw1 = ImageDraw.Draw(faa)
       font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",20)
       draw1.text((00,00), "ERROR", fill = 100, font = font1)
-      draw1.text((00,30), "DataBase_Not_Found", fill = 100, font = font1)
+      draw1.text((00,30), "Database Not Found", fill = 100, font = font1)
       faa = faa.rotate(270)
       faa.save('1.jpg')
       image = Image.open('1.jpg')
@@ -261,7 +258,7 @@ except serial.SerialException:
       draw1 = ImageDraw.Draw(faa)
       font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",20)
       draw1.text((00,00), "ERROR", fill = 100, font = font1)
-      draw1.text((00,30), "RFID_Reader_Disconnected", fill = 100, font = font1)
+      draw1.text((00,30), "RFID Reader Disconnected", fill = 100, font = font1)
       faa = faa.rotate(270)
       faa.save('1.jpg')
       image = Image.open('1.jpg')
@@ -279,7 +276,7 @@ serLec.close() #Fermeture des ports pour les ouvrir seulement quand nécessaire 
 
 #######################################################################################################################################################         
 def main():
-      print ("start")
+      print ("start weight")
       while True:
             reset()
             Export.export(dbPath)
@@ -300,6 +297,40 @@ def main():
 
                         persoData = s.query(DB.Session).filter(DB.Session.ID_RFID == str(strUid).strip()).first() #Recherche de l'individu dans la database et recuperation de ses infos
 
+                        
+                        try:
+                              Ink_Weight = str(persoData.Weight)
+                              print Ink_Weight
+                              if Ink_Weight != 'None':
+                                    faa = Image.new('RGB', (296,128), color = "white")
+                                    draw1 = ImageDraw.Draw(faa)
+                                    font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",20)
+                                    draw1.text((00,00), "ERROR ", fill = 100, font = font1)
+                                    draw1.text((00,30), "Bird Already Weighed", fill = 100, font = font1)
+                                    faa = faa.rotate(270)
+                                    faa.save('1.jpg')
+                                    image = Image.open('1.jpg')
+                                    epd.set_frame_memory(image, 0, 0)
+                                    epd.display_frame()
+                                    epd.set_frame_memory(image, 0, 0)
+                                    epd.display_frame()
+                                    break
+
+                        except AttributeError:
+                              faa = Image.new('RGB', (296,128), color = "white")
+                              draw1 = ImageDraw.Draw(faa)
+                              font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",20)
+                              draw1.text((00,00), "ERROR", fill = 100, font = font1)
+                              faa = faa.rotate(270)
+                              faa.save('1.jpg')
+                              image = Image.open('1.jpg')
+                              epd.set_frame_memory(image, 0, 0)
+                              epd.display_frame()
+                              epd.set_frame_memory(image, 0, 0)
+                              epd.display_frame()
+                              break
+
+
                         try:
                               Ink_Ring = str(persoData.ID_Reneco)
                         except AttributeError:
@@ -307,7 +338,7 @@ def main():
                               draw1 = ImageDraw.Draw(faa)
                               font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",20)
                               draw1.text((00,00), "ERROR", fill = 100, font = font1)
-                              draw1.text((00,30), "Bird_Chip_ Not_In_Database", fill = 100, font = font1)
+                              draw1.text((00,30), "Bird Chip Not In Database", fill = 100, font = font1)
                               faa = faa.rotate(270)
                               faa.save('1.jpg')
                               image = Image.open('1.jpg')
@@ -324,7 +355,7 @@ def main():
                               draw1 = ImageDraw.Draw(faa)
                               font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",20)
                               draw1.text((00,00), "ERROR", fill = 100, font = font1)
-                              draw1.text((00,30), "Bird_Position_ Not_In_Database", fill = 100, font = font1)
+                              draw1.text((00,30), "Bird Position Not In Database", fill = 100, font = font1)
                               faa = faa.rotate(270)
                               faa.save('1.jpg')
                               image = Image.open('1.jpg')
@@ -336,6 +367,7 @@ def main():
 
                         print(Ink_Ring)
                         print(Ink_Position)
+                        Ink_Weight = ""
                         ink(Ink_Ring, Ink_Position, Ink_Weight, Ink_State)
                         result = testIfEntryExists(persoData) 
 
@@ -361,17 +393,15 @@ def main():
                                                 valid = testWeight(persoData, WeightDB)
                                                 Ink_Weight = strWeight
                                                 if (valid == classState.State.accepted):
-                                                      print("9.1")
                                                       Ink_State = "OK"
                                                       ink(Ink_Ring, Ink_Position, Ink_Weight, Ink_State)
                                                       s.query(DB.Session).filter(DB.Session.ID_RFID == persoData.ID_RFID).update({"Weight" : WeightDB, "Date" : datetime.datetime.now()})
                                                       s.commit()
                                                 if (valid == classState.State.pendingLow or valid == classState.State.pendingHigh):
-                                                      print("9.2")
                                                       if valid == classState.State.pendingLow:
-                                                            Ink_State = "WEIGHT_TOO_LOW"
+                                                            Ink_State = "WEIGHT TOO LOW"
                                                       if valid == classState.State.pendingHigh:
-                                                            Ink_State = "WEIGHT_TOO_HIGH"
+                                                            Ink_State = "WEIGHT_TOO HIGH"
                                                       ink(Ink_Ring, Ink_Position, Ink_Weight, Ink_State)
                                                       flagVal = True
                                                       p = inkey()
@@ -384,11 +414,11 @@ def main():
                                                                   s.commit()
                                                             if p == "n":
                                                                   flagVal = False
-                                                                  Ink_State = "WEIGHT_CANCELLED"
+                                                                  Ink_State = "WEIGHT CANCELLED"
                                                                   ink(Ink_Ring, Ink_Position, Ink_Weight, Ink_State)
                                                 if (valid == classState.State.rejeted):
                                                       print("9.3")
-                                                      Ink_State = "IMPOSSIBLE_WEIGHT"
+                                                      Ink_State = "IMPOSSIBLE WEIGHT"
                                                       ink(Ink_Ring, Ink_Position, Ink_Weight, Ink_State)
                         else:
                               Ink_State = "ERROR"

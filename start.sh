@@ -2,8 +2,8 @@
 
 cd /home/pi/Desktop/ProjetRFID
 
-echo Strict incomimg
+echo Script incoming
 
-sleep 3
+sleep 5
 
 sudo python Pesee.py
