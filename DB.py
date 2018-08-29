@@ -43,10 +43,6 @@ class Log(Base):
             
 ########################################################################################################################################################################################################################################
 
-list_of_files = glob.glob('/home/pi/Share/Public/*.db') # * means all if need specific format then *.csv
-latest_file = max(list_of_files, key=os.path.getctime)
-dbPath = str(latest_file)
-
 def createDB(dbPath):
     engine = create_engine('sqlite:///%s' %dbPath) #Connexion de la base de donnees
     session = sessionmaker(bind = engine)

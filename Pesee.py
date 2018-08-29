@@ -45,7 +45,10 @@ epd.init(epd.lut_partial_update)
 
 #######################
 
+print ("start")
+
 "Demarrage du systeme"
+
 
 faa = Image.new('RGB', (296,128), color = "white")
 draw1 = ImageDraw.Draw(faa)
@@ -68,7 +71,7 @@ time.sleep(3)
 
 "Variables globales"
 
-list_of_files = glob.glob('/home/pi/Share/Public/*.db') # * means all if need specific format then *.csv
+list_of_files = glob.glob('/home/pi/Share/Public/*.db') # * means all if need specific format then *.db
 latest_file = max(list_of_files, key=os.path.getctime)
 dbPath = latest_file
 
@@ -182,8 +185,7 @@ def ink(ring, position, weight, state):
 def reset():
       faa = Image.new('RGB', (296,128), color = "white")
       draw1 = ImageDraw.Draw(faa)
-      font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",26)
-      font2 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans-Bold.ttf", 20)
+      font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",34)
       draw1.text((00,00), "SCAN", fill = 100, font = font1)
       faa = faa.rotate(270)
       faa.save('1.jpg')
@@ -201,6 +203,21 @@ def reset():
 
 
 dbExists = os.path.isfile(dbPath)
+if dbExists == False:
+      faa = Image.new('RGB', (296,128), color = "white")
+      draw1 = ImageDraw.Draw(faa)
+      font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",20)
+      draw1.text((00,00), "ERROR", fill = 100, font = font1)
+      draw1.text((00,30), "DataBase_Not_Found", fill = 100, font = font1)
+      faa = faa.rotate(270)
+      faa.save('1.jpg')
+      image = Image.open('1.jpg')
+      epd.set_frame_memory(image, 0, 0)
+      epd.display_frame()
+      epd.set_frame_memory(image, 0, 0)
+      epd.display_frame()
+      sys.exit()
+
 session = DB.createDB(dbPath)
 s = session
 
@@ -214,7 +231,7 @@ s.add(date_access)
 
 
 ################################################################################################################################
-"""Vérificaion date de la base de données"""
+"""Vérification date de la base de données"""
 
 Ink_Ring = ""
 Ink_Position = ""
@@ -222,16 +239,36 @@ Ink_Weight = ""
 Ink_State = ""
 
 """if s.query(DB.Log).filter(DB.Log.ID == '1').first().Date.date() != datetime.date.today():
-      Ink_State = "Error Database"
-      ink(Ink_Ring, Ink_Position, Ink_Weight, Ink_State)
+      faa = Image.new('RGB', (296,128), color = "white")
+      draw1 = ImageDraw.Draw(faa)
+      font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",20)
+      draw1.text((00,00), "ERROR", fill = 100, font = font1)
+      draw1.text((00,30), "Database_Outdated", fill = 100, font = font1)
+      faa = faa.rotate(270)
+      faa.save('1.jpg')
+      image = Image.open('1.jpg')
+      epd.set_frame_memory(image, 0, 0)
+      epd.display_frame()
+      epd.set_frame_memory(image, 0, 0)
+      epd.display_frame()
       sys.exit()"""
 
 try:
       serLec = serial.Serial('/dev/ttyUSB0', 9600, timeout = 1) #Lecteur Biolog par câble
       readerChoice = 0
 except serial.SerialException:
-      Ink_State = "Error RFID Reader"
-      ink(Ink_Ring, Ink_Position, Ink_Weight, Ink_State)
+      faa = Image.new('RGB', (296,128), color = "white")
+      draw1 = ImageDraw.Draw(faa)
+      font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",20)
+      draw1.text((00,00), "ERROR", fill = 100, font = font1)
+      draw1.text((00,30), "RFID_Reader_Disconnected", fill = 100, font = font1)
+      faa = faa.rotate(270)
+      faa.save('1.jpg')
+      image = Image.open('1.jpg')
+      epd.set_frame_memory(image, 0, 0)
+      epd.display_frame()
+      epd.set_frame_memory(image, 0, 0)
+      epd.display_frame()
       sys.exit()
 
 serLec.close() #Fermeture des ports pour les ouvrir seulement quand nécessaire pour eviter le stack de données
@@ -260,13 +297,12 @@ def main():
                         flagLec = False
                         serLec.close()
                         strUid = recupUID(uid)
-                        print strUid
-                        
+
                         persoData = s.query(DB.Session).filter(DB.Session.ID_RFID == str(strUid).strip()).first() #Recherche de l'individu dans la database et recuperation de ses infos
 
-                        """try:"""
-                        Ink_Ring = str(persoData.ID_Reneco)
-                        """except AttributeError:
+                        try:
+                              Ink_Ring = str(persoData.ID_Reneco)
+                        except AttributeError:
                               faa = Image.new('RGB', (296,128), color = "white")
                               draw1 = ImageDraw.Draw(faa)
                               font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",20)
@@ -279,16 +315,30 @@ def main():
                               epd.display_frame()
                               epd.set_frame_memory(image, 0, 0)
                               epd.display_frame()
-                              pass"""
-                        
-                        Ink_Position = str(persoData.Position)
+                              break
+
+                        try: 
+                              Ink_Position = str(persoData.Position)
+                        except AttributeError:
+                              faa = Image.new('RGB', (296,128), color = "white")
+                              draw1 = ImageDraw.Draw(faa)
+                              font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",20)
+                              draw1.text((00,00), "ERROR", fill = 100, font = font1)
+                              draw1.text((00,30), "Bird_Position_ Not_In_Database", fill = 100, font = font1)
+                              faa = faa.rotate(270)
+                              faa.save('1.jpg')
+                              image = Image.open('1.jpg')
+                              epd.set_frame_memory(image, 0, 0)
+                              epd.display_frame()
+                              epd.set_frame_memory(image, 0, 0)
+                              epd.display_frame()
+                              break
 
                         print(Ink_Ring)
                         print(Ink_Position)
                         ink(Ink_Ring, Ink_Position, Ink_Weight, Ink_State)
-                        print("5")
-                        result = testIfEntryExists(persoData) #Test avec la fonction avant
-                        print("6")
+                        result = testIfEntryExists(persoData) 
+
                         if(result["isNew"]):
                               flagBal = True
                               Weight = ""
@@ -299,7 +349,6 @@ def main():
                                     except EOFError:
                                           pass
                                     if Weight:
-                                          print("8")
                                           print Weight
                                           flagBal = False
                                           strWeight = str(Weight) #Conversion binaire to string pour pce
@@ -311,8 +360,6 @@ def main():
                                                 WeightDB = recupWeight(strWeight)
                                                 valid = testWeight(persoData, WeightDB)
                                                 Ink_Weight = strWeight
-                                                print valid
-                                                print("9")
                                                 if (valid == classState.State.accepted):
                                                       print("9.1")
                                                       Ink_State = "OKAY"
@@ -351,4 +398,12 @@ def main():
 
 
 if __name__ == '__main__':
-       main()
+      while True:
+            try:
+                  main()
+            except KeyboardInterrupt:
+                  sys.exit()
+            except:
+                  pass
+            '''else: 
+                  break'''
