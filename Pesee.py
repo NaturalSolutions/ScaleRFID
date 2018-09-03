@@ -448,11 +448,11 @@ def main():
 
 if __name__ == '__main__':
       main()
-      '''while True:
+      while True:
             try:
                   main()
             except KeyboardInterrupt:
                   sys.exit()
             except:
-                  pass'''
+                  pass
 
