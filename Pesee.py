@@ -35,7 +35,7 @@ import classGetch
 
 ######################################################################################################################################################################
 
-"Intialisation des ecrans"
+"Intialisation de lecrans"
 
 #Ecran Ink
 
@@ -45,7 +45,6 @@ epd.init(epd.lut_partial_update)
 
 #######################
 
-print ("start")
 
 "Demarrage du systeme"
 
@@ -86,11 +85,11 @@ Weight = ""
                                                                                                       
 ####################################################################################################################################################################
 
-def pushKey(event):
+"""def pushKey(event):
       #Fonction de détection du poids
       global Weight
       if event.char:
-            Weight = Weight + str(event.char)
+            Weight = Weight + str(event.char)"""
 
 def testIfEntryExists(testPresence):
       #Vérification de la presence de l'outade dans la base de données et si elle a deja ete pese, regarde environ 30000 outardes
@@ -163,19 +162,6 @@ def ink(ring, position, weight, state):
       draw1.text((00,75), " " + state , fill = 0, font = font2)
       foo = foo.rotate(270)
       foo.save('1.jpg')
-      image = Image.open('1.jpg')
-      epd.set_frame_memory(image, 0, 0)
-      epd.display_frame()
-      epd.set_frame_memory(image, 0, 0)
-      epd.display_frame()
-
-def reset():
-      faa = Image.new('RGB', (296,128), color = "white")
-      draw1 = ImageDraw.Draw(faa)
-      font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",34)
-      draw1.text((00,00), "READY", fill = 100, font = font1)
-      faa = faa.rotate(270)
-      faa.save('1.jpg')
       image = Image.open('1.jpg')
       epd.set_frame_memory(image, 0, 0)
       epd.display_frame()
@@ -267,7 +253,17 @@ serLec.close() #Fermeture des ports pour les ouvrir seulement quand nécessaire 
 def main():
       print ("start weight")
       while True:
-            reset()
+            faa = Image.new('RGB', (296,128), color = "white")
+            draw1 = ImageDraw.Draw(faa)
+            font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",34)
+            draw1.text((00,00), "READY", fill = 100, font = font1)
+            faa = faa.rotate(270)
+            faa.save('1.jpg')
+            image = Image.open('1.jpg')
+            epd.set_frame_memory(image, 0, 0)
+            epd.display_frame()
+            epd.set_frame_memory(image, 0, 0)
+            epd.display_frame()
             Export.export(dbPath)
             serLec.close()
             flagLec = True
