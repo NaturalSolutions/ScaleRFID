@@ -35,7 +35,7 @@ import classGetch
 
 ######################################################################################################################################################################
 
-"Intialisation des ecrans"
+"Intialisation de lecrans"
 
 #Ecran Ink
 
@@ -45,7 +45,6 @@ epd.init(epd.lut_partial_update)
 
 #######################
 
-print ("start")
 
 "Demarrage du systeme"
 
@@ -67,30 +66,31 @@ epd.display_frame()
 ########################################################################################################################################################################
 
 "Variables globales"
-
+#REcupération du fichier de bas de donnees
 list_of_files = glob.glob('/home/pi/Share/Public/*.db') # * means all if need specific format then *.db
-latest_file = max(list_of_files, key=os.path.getctime)
+latest_file = max(list_of_files, key=os.path.getctime) 
 dbPath = latest_file
 
 
 csvOutPath = '/home/pi/Share/Public/releve.csv'
 
+#Variable d'affichage (prefix ink) 
 Ink_Ring = ""
 Ink_Position = ""
 Ink_Weight = ""
 Ink_State = ""
 
-
+#poids de la pesee en cours
 Weight = ""
 
                                                                                                       
 ####################################################################################################################################################################
 
-def pushKey(event):
+"""def pushKey(event):
       #Fonction de détection du poids
       global Weight
       if event.char:
-            Weight = Weight + str(event.char)
+            Weight = Weight + str(event.char)"""
 
 def testIfEntryExists(testPresence):
       #Vérification de la presence de l'outade dans la base de données et si elle a deja ete pese, regarde environ 30000 outardes
@@ -133,16 +133,19 @@ def conversionAzertyQwerty(strWeight):
       strWeight = strWeight.replace("à","0")
       return strWeight
 
+# Format les donnes recu par le lecteur rfid
 def recupUID(uid):
       uid = str(uid)
       start = '$A0112OKD'
       end = '#'
+      #permet de limiter la string de recher de l'id
       uid = (uid.split(start))[1].split(end)[0]
       uid = uid[0:15]
       print uid
  
       return uid
 
+#
 def recupWeight(Weight):
       global languageChoice
       WeightStr = str(Weight)
@@ -163,19 +166,6 @@ def ink(ring, position, weight, state):
       draw1.text((00,75), " " + state , fill = 0, font = font2)
       foo = foo.rotate(270)
       foo.save('1.jpg')
-      image = Image.open('1.jpg')
-      epd.set_frame_memory(image, 0, 0)
-      epd.display_frame()
-      epd.set_frame_memory(image, 0, 0)
-      epd.display_frame()
-
-def reset():
-      faa = Image.new('RGB', (296,128), color = "white")
-      draw1 = ImageDraw.Draw(faa)
-      font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",34)
-      draw1.text((00,00), "READY", fill = 100, font = font1)
-      faa = faa.rotate(270)
-      faa.save('1.jpg')
       image = Image.open('1.jpg')
       epd.set_frame_memory(image, 0, 0)
       epd.display_frame()
@@ -224,8 +214,9 @@ Ink_Ring = ""
 Ink_Position = ""
 Ink_Weight = ""
 Ink_State = ""
-
-"""if s.query(DB.Log).filter(DB.Log.ID == '1').first().Date.date() != datetime.date.today():
+#Fonctionnel mais commenté
+#Permet la detec tion du jour pour informer ou non l'user que la bsae de saisie n'est pas la bonne (retard ou avance)  
+"""if s.query(DB.Log).filter(DB.Session.Date_Session == '1').first().Date.date() != datetime.date.today():
       faa = Image.new('RGB', (296,128), color = "white")
       draw1 = ImageDraw.Draw(faa)
       font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",20)
@@ -240,35 +231,28 @@ Ink_State = ""
       epd.display_frame()
       sys.exit()"""
 
-try:
-      serLec = serial.Serial('/dev/ttyUSB0', 9600, timeout = 1) #Lecteur 
-except serial.SerialException:
-      faa = Image.new('RGB', (296,128), color = "white")
-      draw1 = ImageDraw.Draw(faa)
-      font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",20)
-      draw1.text((00,00), "ERROR", fill = 100, font = font1)
-      draw1.text((00,30), "RFID Reader Disconnected", fill = 100, font = font1)
-      faa = faa.rotate(270)
-      faa.save('1.jpg')
-      image = Image.open('1.jpg')
-      epd.set_frame_memory(image, 0, 0)
-      epd.display_frame()
-      epd.set_frame_memory(image, 0, 0)
-      epd.display_frame()
-      sys.exit()
 
-serLec.close() #Fermeture des ports pour les ouvrir seulement quand nécessaire pour eviter le stack de données
-      
 
 
 
 
 #######################################################################################################################################################         
 def main():
+      Export.export(dbPath)
       print ("start weight")
       while True:
-            reset()
-            Export.export(dbPath)
+            """faa = Image.new('RGB', (296,128), color = "white")
+            draw1 = ImageDraw.Draw(faa)
+            font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",34)
+            draw1.text((00,00), "READY", fill = 100, font = font1)
+            faa = faa.rotate(270)
+            faa.save('1.jpg')
+            image = Image.open('1.jpg')
+            epd.set_frame_memory(image, 0, 0)
+            epd.display_frame()
+            epd.set_frame_memory(image, 0, 0)
+            epd.display_frame()"""
+
             serLec.close()
             flagLec = True
             print('2')
@@ -286,8 +270,7 @@ def main():
                         Ink_State = ""            
                         print(uid)
                         strUid = recupUID(uid)
-
-
+  
                         persoData = s.query(DB.Session).filter(DB.Session.ID_RFID == str(strUid).strip()).first() #Recherche de l'individu dans la database et recuperation de ses infos
                         print(persoData)
 
@@ -384,11 +367,14 @@ def main():
                               flagBal = True
                               Weight = ""
                               while flagBal: #Boucle de lecture de la balance
+                                    #Hack pour ne pas entrer dans une boulce infinie de pesé
                                     time.sleep(1)
                                     try:
                                           Weight = raw_input()
                                     except EOFError:
                                           pass
+                                          #end HACK
+                                          
                                     if Weight:
                                           flagBal = False
                                           strWeight = str(Weight) #Conversion binaire to string pour pce
@@ -409,7 +395,7 @@ def main():
                                                       if valid == classState.State.pendingLow:
                                                             Ink_State = "WEIGHT TOO LOW"
                                                       if valid == classState.State.pendingHigh:
-                                                            Ink_State = "WEIGHT_TOO HIGH"
+                                                            Ink_State = "WEIGHT TOO HIGH"
                                                       ink(Ink_Ring, Ink_Position, Ink_Weight, Ink_State)
                                                       flagVal = True
                                                       p = inkey()
