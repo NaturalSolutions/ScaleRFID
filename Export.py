@@ -6,7 +6,7 @@ from xlsxwriter.workbook import Workbook
 import datetime
 
 
-def export(dbPath, nameFile, date, dateDB):
+def export(dbPath, nameFile):
     con = sqlite3.connect(dbPath)
     outfile = open("/home/pi/Share/Public/temp.csv",'w')
     outcsv = csv.writer(outfile)
@@ -14,7 +14,7 @@ def export(dbPath, nameFile, date, dateDB):
     outcsv.writerow(['Tind_BagueId','DateSaisie','Poids','Notes'])
     outcsv.writerows(cursor.fetchall())
     outfile.close()
-
+    date = datetime.datetime.now()
     with open("/home/pi/Share/Public/temp.csv",'rt') as csv_in, open("/home/pi/Share/Public/" + nameFile + ".csv",'w') as csv_out:
         reader = csv.reader(csv_in)
         writer = csv.writer(csv_out)
@@ -22,7 +22,7 @@ def export(dbPath, nameFile, date, dateDB):
         p = 0
         for row in reader:
             if p != 0:
-                writer.writerow([row[0]] + [dateDB] + [row[2]] + [row[3]])
+                writer.writerow([row[0]] + [date] + [row[2]] + [row[3]])
             else:
                 p = 1
     csv_in.close()

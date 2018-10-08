@@ -8,6 +8,8 @@ from sqlalchemy import *
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.schema import Index
 import datetime
+import glob
+import os
 
 import Screen
 
@@ -37,27 +39,52 @@ class Session(Base):
             self.ID, self.ID_Reneco, self.ID_RFID, self.Position, self.Age, self.Date_Last_Weight, self.Days_Since_Last_Weight, self.Last_Weight, self.Date_Session, self.Weight_Min_Path, self.Weight_Max_Path, self.Weight_Min_Imp, self.Weight_Max_Imp, self.Date, self.Weight, self.Note)
 
 
+class Log(Base):
+    __tablename__ = 'log'
+    ID = Column(Integer, primary_key = True, autoincrement = True)
+    Date = Column(DateTime)
+    Comment = Column(String)
+    def __repr__(self):
+        return "<Log(ID = '%s', Date = '%s', Comment = '%s'>" % (self.ID, self.Date, self.Comment )
 ########################################################################################################################################################################################################################################
 
+# def dbExists():
+#     strdate = datetime.datetime.now
 
+def testFiles():
+    list_of_files = glob.glob('/home/pi/Share/Public/*.db') # * means all if need specific format then *.db
+    if len(list_of_files)== 0:
+        Screen.error("NO DATABASE FOUND")
+        exit()
+    strdate = datetime.datetime.now().strftime('%Y%m%d')
+    list_of_files = glob.glob('/home/pi/Share/Public/Prep_Weighing_'+strdate+'*.db')
+    if len(list_of_files)== 0:
+        Screen.error("DATABASE OUTDATED")
+        exit()
+    latest_file = max(list_of_files, key=os.path.getctime)
+    return latest_file
 
 def initDB(dbFile):
     engine = create_engine('sqlite:///' + dbFile) #Connexion de la base de donnees
     session = sessionmaker(bind = engine)
     Base.metadata.create_all(engine)
-    s = session()
-    print("session on")
-    return s
+    
+    return session()
 
-def testSession(session,):
-    dateSession = (session.query(Session).filter(Session.Date_Session == 1).first())
-    if dateSession != datetime.date.today():
+def testSession(session):
+    testFiles()
+    date_access = Log(Date = datetime.datetime.now())
+    session.add(date_access)
+    session.commit()
+    dateSession = (session.query(Log).filter(Log.ID == 1).first().Date)
+    if dateSession.date() != datetime.date.today():
         Screen.error("DATABASE OUTDATED")
         print("db outdated")
-        
+        return False
     else:
         Screen.error("DATABASE UP TO DATE")
         print("db up to date")
+        return True
 
 def searchDB(session, uid):
     dataBird = session.query(Session).filter(Session.ID_RFID == uid.strip()).first()

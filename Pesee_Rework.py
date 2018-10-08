@@ -21,6 +21,7 @@ import datetime
 import time
 import RPi.GPIO as GPIO
 import Export
+import Screen
 import sys
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
@@ -62,14 +63,20 @@ epd.display_frame()
 
 
 
+# def ch
+
 ########################################################################################################################################################################
 
 "Variables"
 
 list_of_files = glob.glob('/home/pi/Share/Public/*.db') # * means all if need specific format then *.db
+if len(list_of_files)== 0:
+      Screen.error("NO DATABASE FOUND")
+      exit()
 latest_file = max(list_of_files, key=os.path.getctime)
 dbPath = latest_file
-
+#TOTDO = dynamicfilename
+filename= 'WeightsFile_201801008.csv'
 csvOutPath = '/home/pi/Share/Public/releve.csv'
 
 Ink_Ring = ""
@@ -96,8 +103,14 @@ if dbExists == False:
       epd.display_frame()
       sys.exit()
 
-session = DB.createDB(dbPath)
+# session = DB.createDB(dbPath)
+session = DB.initDB(dbPath)
 s = session
+if DB.testSession(s) == False:
+      exit()
+
+
+print('tested')
 
 inkey = classGetch._Getch()
 
@@ -236,7 +249,7 @@ def main():
       print("start weight")
       while True:
             reset()
-            Export.export(dbPath)
+            Export.export(dbPath, filename)
             serLec.close()
             flagLec = True
             while flagLec: #Boucle de lecture du scanner
