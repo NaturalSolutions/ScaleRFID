@@ -29,12 +29,17 @@ def blank():
     epd.display_frame() 
 
 
-def error(error):
+def error(error, label = None):
     print(error)
     temp = PIL.Image.new('RGB', (296,128), color = "white")
-    draw = PIL.ImageDraw.Draw(temp)
+    draw = PIL.ImageDraw.Draw(temp)        
     font = PIL.ImageFont.truetype("/home/pi/Desktop/ProjetRFID_Rework/DejaVuSans.ttf",30) #permet de choisir la olice et sa aille
-    draw.text((00,00), text = error, fill = 100, font = font) #permet d'ecrire du texte
+    offset = 0
+    if label != None:
+        draw.text((00,00), text = label, fill = 100, font = font) #permet d'ecrire du texte
+        offset = 30
+
+    draw.text((00,offset), text = error, fill = 100, font = font) #permet d'ecrire du texte
     temp = temp.rotate(270)
     temp.save('temp.jpg')
     image = PIL.Image.open('temp.jpg')

@@ -208,20 +208,6 @@ Ink_Position = ""
 Ink_Weight = ""
 Ink_State = ""
 
-"""if s.query(DB.Log).filter(DB.Log.ID == '1').first().Date.date() != datetime.date.today():
-      faa = Image.new('RGB', (296,128), color = "white")
-      draw1 = ImageDraw.Draw(faa)
-      font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",20)
-      draw1.text((00,00), "ERROR", fill = 100, font = font1)
-      draw1.text((00,30), "Database_Outdated", fill = 100, font = font1)
-      faa = faa.rotate(270)
-      faa.save('1.jpg')
-      image = Image.open('1.jpg')
-      epd.set_frame_memory(image, 0, 0)
-      epd.display_frame()
-      epd.set_frame_memory(image, 0, 0)
-      epd.display_frame()
-      sys.exit()"""
 
 try:
       serLec = serial.Serial('/dev/ttyUSB0', 9600, timeout = 1) #Lecteur 
@@ -264,93 +250,98 @@ def main():
                         Ink_Position = ""
                         Ink_Weight = ""
                         Ink_State = ""            
-                        print(uid)
+                        print('uid : ' + uid)
                         strUid = recupUID(uid)
 
 
                         persoData = s.query(DB.Session).filter(DB.Session.ID_RFID == str(strUid).strip()).first() #Recherche de l'individu dans la database et recuperation de ses infos
-                        print(persoData)
+                        print('persoData', persoData)
 
                         if str(persoData) == 'None':
-                              faa = Image.new('RGB', (296,128), color = "white")
-                              draw1 = ImageDraw.Draw(faa)
-                              font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",20)
-                              draw1.text((00,00), "ERROR", fill = 100, font = font1)
-                              draw1.text((00,30), "Bird Chip Not In Database", fill = 100, font = font1)
-                              faa = faa.rotate(270)
-                              faa.save('1.jpg')
-                              image = Image.open('1.jpg')
-                              epd.set_frame_memory(image, 0, 0)
-                              epd.display_frame()
-                              epd.set_frame_memory(image, 0, 0)
-                              epd.display_frame()
+                              Screen.error('Bird Chip Not In Database', 'ERROR')
+                              # faa = Image.new('RGB', (296,128), color = "white")
+                              # draw1 = ImageDraw.Draw(faa)
+                              # font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",20)
+                              # draw1.text((00,00), "ERROR", fill = 100, font = font1)
+                              # draw1.text((00,30), "Bird Chip Not In Database", fill = 100, font = font1)
+                              # faa = faa.rotate(270)
+                              # faa.save('1.jpg')
+                              # image = Image.open('1.jpg')
+                              # epd.set_frame_memory(image, 0, 0)
+                              # epd.display_frame()
+                              # epd.set_frame_memory(image, 0, 0)
+                              # epd.display_frame()
                               break  
 
                         try:
                               Ink_Ring = str(persoData.ID_Reneco) #test en double
                         except AttributeError:
-                              faa = Image.new('RGB', (296,128), color = "white")
-                              draw1 = ImageDraw.Draw(faa)
-                              font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",20)
-                              draw1.text((00,00), "ERROR", fill = 100, font = font1)
-                              draw1.text((00,30), "Bird Chip Not In Database", fill = 100, font = font1)
-                              faa = faa.rotate(270)
-                              faa.save('1.jpg')
-                              image = Image.open('1.jpg')
-                              epd.set_frame_memory(image, 0, 0)
-                              epd.display_frame()
-                              epd.set_frame_memory(image, 0, 0)
-                              epd.display_frame()
-                              break
+                              Screen.error('Bird Chip Not In Database', 'ERROR')                              
+                              # faa = Image.new('RGB', (296,128), color = "white")
+                              # draw1 = ImageDraw.Draw(faa)
+                              # font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",20)
+                              # draw1.text((00,00), "ERROR", fill = 100, font = font1)
+                              # draw1.text((00,30), "Bird Chip Not In Database", fill = 100, font = font1)
+                              # faa = faa.rotate(270)
+                              # faa.save('1.jpg')
+                              # image = Image.open('1.jpg')
+                              # epd.set_frame_memory(image, 0, 0)
+                              # epd.display_frame()
+                              # epd.set_frame_memory(image, 0, 0)
+                              # epd.display_frame()
+                              # break
 
                         try: 
                               Ink_Position = str(persoData.Position)
                         except AttributeError:
-                              faa = Image.new('RGB', (296,128), color = "white")
-                              draw1 = ImageDraw.Draw(faa)
-                              font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",20)
-                              draw1.text((00,00), "ERROR", fill = 100, font = font1)
-                              draw1.text((00,30), "Bird Position Not In Database", fill = 100, font = font1)
-                              faa = faa.rotate(270)
-                              faa.save('1.jpg')
-                              image = Image.open('1.jpg')
-                              epd.set_frame_memory(image, 0, 0)
-                              epd.display_frame()
-                              epd.set_frame_memory(image, 0, 0)
-                              epd.display_frame()
+                              Screen.error('Bird Position Not In Database', 'ERROR')
+                              # faa = Image.new('RGB', (296,128), color = "white")
+                              # draw1 = ImageDraw.Draw(faa)
+                              # font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",20)
+                              # draw1.text((00,00), "ERROR", fill = 100, font = font1)
+                              # draw1.text((00,30), "Bird Position Not In Database", fill = 100, font = font1)
+                              # faa = faa.rotate(270)
+                              # faa.save('1.jpg')
+                              # image = Image.open('1.jpg')
+                              # epd.set_frame_memory(image, 0, 0)
+                              # epd.display_frame()
+                              # epd.set_frame_memory(image, 0, 0)
+                              # epd.display_frame()
                               break
  
                         try:
                               Ink_Weight = str(persoData.Weight)
                               if Ink_Weight != 'None':
-                                    faa = Image.new('RGB', (296,128), color = "white")
-                                    draw1 = ImageDraw.Draw(faa)
-                                    font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",20)
-                                    draw1.text((00,00), "ERROR", fill = 100, font = font1)
-                                    draw1.text((00,30), "Bird Already Weighted", fill = 100, font = font1)
-                                    faa = faa.rotate(270)
-                                    faa.save('1.jpg')
-                                    image = Image.open('1.jpg')
-                                    epd.set_frame_memory(image, 0, 0)
-                                    epd.display_frame()
-                                    epd.set_frame_memory(image, 0, 0)
-                                    epd.display_frame()
+                                    Screen.error('Bird Already Weighted','ERROR')
+                                    # faa = Image.new('RGB', (296,128), color = "white")
+                                    # draw1 = ImageDraw.Draw(faa)
+                                    # font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",20)
+                                    # draw1.text((00,00), "ERROR", fill = 100, font = font1)
+                                    # draw1.text((00,30), "Bird Already Weighted", fill = 100, font = font1)
+                                    # faa = faa.rotate(270)
+                                    # faa.save('1.jpg')
+                                    # image = Image.open('1.jpg')
+                                    # epd.set_frame_memory(image, 0, 0)
+                                    # epd.display_frame()
+                                    # epd.set_frame_memory(image, 0, 0)
+                                    # epd.display_frame()
                                     break
                               if Ink_Weight == 'None':
                                     Ink_Weight = ""
                         except AttributeError:
-                              faa = Image.new('RGB', (296,128), color = "white")
-                              draw1 = ImageDraw.Draw(faa)
-                              font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",20)
-                              draw1.text((00,00), "ERROR", fill = 100, font = font1)
-                              draw1.text((00,30), "Bird Chip Not In Database", fill = 100, font = font1)
-                              faa = faa.rotate(270)
-                              faa.save('1.jpg')
-                              image = Image.open('1.jpg')
-                              epd.set_frame_memory(image, 0, 0)
-                              epd.display_frame()
-                              epd.set_frame_memory(image, 0, 0)
-                              epd.display_frame()
+                              Screen.error('Bird Chip Not In Database','ERROR')                              
+                              # faa = Image.new('RGB', (296,128), color = "white")
+                              # draw1 = ImageDraw.Draw(faa)
+                              # font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",20)
+                              # draw1.text((00,00), "ERROR", fill = 100, font = font1)
+                              # draw1.text((00,30), "Bird Chip Not In Database", fill = 100, font = font1)
+                              # faa = faa.rotate(270)
+                              # faa.save('1.jpg')
+                              # image = Image.open('1.jpg')
+                              # epd.set_frame_memory(image, 0, 0)
+                              # epd.display_frame()
+                              # epd.set_frame_memory(image, 0, 0)
+                              # epd.display_frame()
                               break  
 
                         ink(Ink_Ring, Ink_Position, Ink_Weight, Ink_State)
