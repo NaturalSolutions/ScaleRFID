@@ -23,7 +23,7 @@ class Session(Base):
     ID_RFID                 =   Column(String, index = True)
     Position                =   Column(String)
     Age                     =   Column(Integer)
-    Date_Last_Weight        =   Column(DateTime)
+    Date_Last_Weight        =   Column(String)
     Days_Since_Last_Weight  =   Column(Integer)
     Last_Weight             =   Column(Integer)
     Date_Session            =   Column(DateTime)
@@ -71,8 +71,9 @@ def initDB(dbFile):
     
     return session()
 
-def testSession(session):
-    testFiles()
+def testSession():
+    db_file = testFiles()
+    session = initDB(db_file)
     date_access = Log(Date = datetime.datetime.now())
     session.add(date_access)
     session.commit()
@@ -80,11 +81,11 @@ def testSession(session):
     if dateSession.date() != datetime.date.today():
         Screen.error("DATABASE OUTDATED")
         print("db outdated")
-        return False
+        return None
     else:
         Screen.error("DATABASE UP TO DATE")
         print("db up to date")
-        return True
+        return {'session': session, 'file': db_file}
 
 def searchDB(session, uid):
     dataBird = session.query(Session).filter(Session.ID_RFID == uid.strip()).first()

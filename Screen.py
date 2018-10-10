@@ -18,6 +18,8 @@ import PIL
 epd = epd2in9.EPD()
 
 
+def reset():
+    epd.reset()
 
 def blank():
     temp = PIL.Image.new('RGB', (296,128), color = "white") #cree une image de 296*128 avec des couleurs RGB 
@@ -28,18 +30,27 @@ def blank():
     epd.set_frame_memory(image, 0, 0)
     epd.display_frame() 
 
+def getPoliceSize(strToParse):
+    if(len(strToParse) < 18):
+        return 30
+    elif(len(strToParse) <30):
+        return 20
+    else:
+        return 15 
 
 def error(error, label = None):
-    print(error)
+    print(error)    
     temp = PIL.Image.new('RGB', (296,128), color = "white")
     draw = PIL.ImageDraw.Draw(temp)        
-    font = PIL.ImageFont.truetype("/home/pi/Desktop/ProjetRFID_Rework/DejaVuSans.ttf",30) #permet de choisir la olice et sa aille
     offset = 0
+    font_size = getPoliceSize(error)
+    font = PIL.ImageFont.truetype("/home/pi/Desktop/ProjetRFID_Rework/DejaVuSans.ttf",30) #permet de choisir la olice et sa aille
+    font_calculated = PIL.ImageFont.truetype("/home/pi/Desktop/ProjetRFID_Rework/DejaVuSans.ttf",font_size) #permet de choisir la olice et sa aille
     if label != None:
         draw.text((00,00), text = label, fill = 100, font = font) #permet d'ecrire du texte
         offset = 30
 
-    draw.text((00,offset), text = error, fill = 100, font = font) #permet d'ecrire du texte
+    draw.text((00,offset), text = error, fill = 100, font = font_calculated) #permet d'ecrire du texte
     temp = temp.rotate(270)
     temp.save('temp.jpg')
     image = PIL.Image.open('temp.jpg')
@@ -47,6 +58,75 @@ def error(error, label = None):
     epd.display_frame()
     epd.set_frame_memory(image, 0, 0)
     epd.display_frame() 
+
+def msg(str_msg, label = None, is_error = False):
+    print(str_msg)    
+    temp = PIL.Image.new('RGB', (296,128), color = "white")
+    draw = PIL.ImageDraw.Draw(temp)        
+    offset = 0
+    font_size = getPoliceSize(str_msg)
+    font = PIL.ImageFont.truetype("/home/pi/Desktop/ProjetRFID_Rework/DejaVuSans.ttf",30) #permet de choisir la olice et sa aille
+    font_calculated = PIL.ImageFont.truetype("/home/pi/Desktop/ProjetRFID_Rework/DejaVuSans.ttf",font_size) #permet de choisir la olice et sa aille
+    if label != None:
+        if(is_error):
+            override_label = u'\u26A0' + label
+        else:
+            override_label = label
+        draw.text((00,00), text = override_label, fill = 100, font = font) #permet d'ecrire du texte
+        offset = 30
+
+    draw.text((00,offset), text = str_msg, fill = 100, font = font_calculated) #permet d'ecrire du texte
+    temp = temp.rotate(270)
+    temp.save('temp.jpg')
+    image = PIL.Image.open('temp.jpg')
+    epd.set_frame_memory(image, 0, 0)
+    epd.display_frame()
+    epd.set_frame_memory(image, 0, 0)
+    epd.display_frame() 
+
+def msg_multi_lines(lines, label = None, is_error = False):
+    temp = PIL.Image.new('RGB', (296,128), color = "white")
+    draw = PIL.ImageDraw.Draw(temp)        
+    offset = 0
+    # font_size = getPoliceSize(str_msg)
+    font = PIL.ImageFont.truetype("/home/pi/Desktop/ProjetRFID_Rework/DejaVuSans.ttf",30) #permet de choisir la olice et sa aille
+    # font_calculated = PIL.ImageFont.truetype("/home/pi/Desktop/ProjetRFID_Rework/DejaVuSans.ttf",font_size) #permet de choisir la olice et sa aille
+    if label != None:
+        if(is_error):
+            override_label = u'\u26A0' + label        
+        else:
+            override_label = label
+        draw.text((00,00), text = override_label, fill = 100, font = font) #permet d'ecrire du texte
+        offset = 30
+    for str_line in lines:
+        font_size = getPoliceSize(str_line)
+        font_calculated = PIL.ImageFont.truetype("/home/pi/Desktop/ProjetRFID_Rework/DejaVuSans.ttf",font_size) #permet de choisir la olice et sa aille
+        draw.text((00,offset), text = str_line, fill = 100, font = font_calculated) #permet d'ecrire du texte
+        offset += 30
+    temp = temp.rotate(270)
+    temp.save('temp.jpg')
+    image = PIL.Image.open('temp.jpg')
+    epd.set_frame_memory(image, 0, 0)
+    epd.display_frame()
+    epd.set_frame_memory(image, 0, 0)
+    epd.display_frame() 
+
+def bird_it(ring, position, weight, state):
+    foo = PIL.Image.new('RGB', (296,128), color = "white")
+    draw1 = PIL.ImageDraw.Draw(foo)
+    font1 = PIL.ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",26)
+    font2 = PIL.ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans-Bold.ttf", 20)
+    draw1.text((00,00), " " + ring, fill = 0, font = font1)
+    draw1.text((00,25), " " + position, fill = 0, font = font1)
+    draw1.text((00,50), " " + weight + "g", fill = 0, font = font1)
+    draw1.text((00,75), " " + state , fill = 0, font = font2)
+    foo = foo.rotate(270)
+    foo.save('1.jpg')
+    image = PIL.Image.open('1.jpg')
+    epd.set_frame_memory(image, 0, 0)
+    epd.display_frame()
+    epd.set_frame_memory(image, 0, 0)
+    epd.display_frame()
 
 ################################################################################################
 
