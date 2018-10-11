@@ -118,7 +118,7 @@ dbPath = dbinfos['file']
 
 # # print('tested')
 
-# inkey = classGetch._Getch()
+inkey = classGetch._Getch()
 
 # date_access = DB.Log(Date = datetime.datetime.now())
 # s.add(date_access)
@@ -217,6 +217,27 @@ Ink_Position = ""
 Ink_Weight = ""
 Ink_State = ""
 
+def remarks():
+      Screen.msg_multi_lines(['1 - No remark','2 - Skinny', '3 - Fat', '4 - Other problem'], 'ACTION', 7)
+      flagVal = True
+      p = inkey()
+
+      while flagVal:
+            if p == 'a':
+                  flagVal = False
+                  return ''
+            elif p == 'b':
+                  flagVal = False
+                  return 'Skinny'
+            elif p == 'c':
+                  flagVal = False
+                  return 'Fat'
+            elif p == 'd':
+                  flagVal = False
+                  return 'Some problem have been noticed'
+
+
+
 #TEst des affichages a suppr 0 intérets
 def screenmethis():
       print('reset')
@@ -294,7 +315,11 @@ def main():
                         Ink_Weight = ""
                         Ink_State = ""            
                         print('uid : ' + uid)
-                        strUid = recupUID(uid)
+                        try:
+                              strUid = recupUID(uid)
+                        except Exception:
+                              print(Exception.message)
+                              break
                         # if strUid == None:
                         #       Screen.msg('Please scan again','ERROR',True)
                         #       sleep(1)
@@ -360,7 +385,9 @@ def main():
                                                 if (valid == classState.State.accepted):
                                                       Ink_State = "OK"
                                                       Screen.bird_it(Ink_Ring, Ink_Position, Ink_Last_Weight, Ink_Day_Since, Ink_Weight, Ink_State)
-                                                      s.query(DB.Session).filter(DB.Session.ID_RFID == persoData.ID_RFID).update({"Weight" : WeightDB, "Date" : datetime.datetime.now()})
+                                                      time.sleep(2)
+                                                      current_remark = remarks()
+                                                      s.query(DB.Session).filter(DB.Session.ID_RFID == persoData.ID_RFID).update({"Weight" : WeightDB, "Date" : datetime.datetime.now(), 'Note': current_remark})
                                                       s.commit()
                                                 if (valid == classState.State.pendingLow or valid == classState.State.pendingHigh):
                                                       if valid == classState.State.pendingLow:
@@ -368,16 +395,20 @@ def main():
                                                       if valid == classState.State.pendingHigh:
                                                             Ink_State = "HIGH WEIGHT"
                                                       Screen.bird_it(Ink_Ring, Ink_Position, Ink_Last_Weight, Ink_Day_Since, Ink_Weight, Ink_State)
+                                                      time.sleep(2)
                                                       flagVal = True
+                                                      Screen.msg_multi_lines(['1 - OK','4 - Cancel'], 'ACTION', 7) 
                                                       p = inkey()
                                                       while flagVal:
-                                                            if p == "y":
+                                                            if p == "a":
                                                                   flagVal = False
                                                                   Ink_State = "OK"
                                                                   Screen.bird_it(Ink_Ring, Ink_Position, Ink_Last_Weight, Ink_Day_Since, Ink_Weight, Ink_State)
-                                                                  s.query(DB.Session).filter(DB.Session.ID_RFID == persoData.ID_RFID).update({"Weight" : WeightDB, "Date" : datetime.datetime.now()})
+                                                                  time.sleep(2) 
+                                                                  current_remark = remarks()                                                                                                                                   
+                                                                  s.query(DB.Session).filter(DB.Session.ID_RFID == persoData.ID_RFID).update({"Weight" : WeightDB, "Date" : datetime.datetime.now(), 'Note': current_remark})
                                                                   s.commit()
-                                                            if p == "n":
+                                                            if p == "d":
                                                                   flagVal = False
                                                                   Ink_State = "WEIGHT CANCELLED"
                                                                   Screen.bird_it(Ink_Ring, Ink_Position, Ink_Last_Weight, Ink_Day_Since, Ink_Weight, Ink_State)

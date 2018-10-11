@@ -13,6 +13,7 @@ icon_details = {
     4: u'\u2461', #petit 2
     5: u'\u2462', #petit 3
     6: u'\u2463', #petit 4
+    7: u'\u27A0'
 }
 # errorArray = [PREPARATION_NOT_FOUND,
 #                 PREPARATION_OUTDATED,
@@ -91,7 +92,7 @@ def msg(str_msg, label = None, icon = None):
     epd.set_frame_memory(image, 0, 0)
     epd.display_frame() 
 
-def msg_multi_lines(lines, label = None, is_error = False):
+def msg_multi_lines(lines, label = None, icon = None):
     temp = PIL.Image.new('RGB', (296,128), color = "white")
     draw = PIL.ImageDraw.Draw(temp)        
     offset = 0
@@ -99,12 +100,14 @@ def msg_multi_lines(lines, label = None, is_error = False):
     font = PIL.ImageFont.truetype("/home/pi/Desktop/ProjetRFID_Rework/DejaVuSans.ttf",30) #permet de choisir la olice et sa aille
     # font_calculated = PIL.ImageFont.truetype("/home/pi/Desktop/ProjetRFID_Rework/DejaVuSans.ttf",font_size) #permet de choisir la olice et sa aille
     if label != None:
-        if(is_error):
-            override_label = u'\u26A0' + label        
+        if(icon != None):
+            override_label = icon_details[icon] + label        
         else:
             override_label = label
         draw.text((00,00), text = override_label, fill = 100, font = font) #permet d'ecrire du texte
         offset = 30
+    if(len(lines)>3):
+        offset = 20
     for str_line in lines:
         font_size = getPoliceSize(str_line)
         font_calculated = PIL.ImageFont.truetype("/home/pi/Desktop/ProjetRFID_Rework/DejaVuSans.ttf",font_size) #permet de choisir la olice et sa aille
