@@ -31,7 +31,7 @@ def blank():
     epd.display_frame() 
 
 def getPoliceSize(strToParse):
-    if(len(strToParse) < 18):
+    if(len(strToParse) < 16):
         return 30
     elif(len(strToParse) <30):
         return 20

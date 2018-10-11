@@ -42,7 +42,7 @@ import classGetch
 
 epd = epd2in9.EPD()
 epd.init(epd.lut_partial_update)
-
+Screen.reset()
 
 ##############################################
 
@@ -114,12 +114,12 @@ dbinfos = DB.testSession()
 s = dbinfos['session']
 dbPath = dbinfos['file']
 
-# print('tested')
+# # print('tested')
 
-inkey = classGetch._Getch()
+# inkey = classGetch._Getch()
 
-date_access = DB.Log(Date = datetime.datetime.now())
-s.add(date_access)
+# date_access = DB.Log(Date = datetime.datetime.now())
+# s.add(date_access)
 
 
                                                                                                       
@@ -157,10 +157,10 @@ def recupUID(uid):
       start = '$A0112OKD'
       end = '#'
       print('luid . ' + uid)
-      try:
-            uid = (uid.split(start))[1].split(end)[0]
-      except Exception:
-            return None
+      # try:
+      uid = (uid.split(start))[1].split(end)[0]
+      # except Exception:
+            # return None
       uid = uid[0:15]
       print uid
  
@@ -223,16 +223,16 @@ def screenmethis():
       time.sleep(2)
       print('endreset')
       print('grande taille : ' + str(len('Bird chip not in database')))      
-      Screen.msg('Bird chip not in database', 'ERROR')
+      Screen.msg('Bird chip not in database', 'ERROR', True)
       time.sleep(2)
-      Screen.msg('Bird chip not in database', 'ERROR')                              
+      Screen.msg('Bird chip not in database', 'ERROR', True)                              
       time.sleep(2)      
       print('grande taille : ' + str(len('Bird position not in database')))
-      Screen.msg('Bird position not in database', 'ERROR')
+      Screen.msg('Bird position not in database', 'ERROR', True)
       time.sleep(2)      
-      Screen.msg('Bird already weighted','ERROR')
+      Screen.msg('Bird already weighted','ERROR', True)
       time.sleep(2)      
-      Screen.msg('Bird chip not in database','ERROR')                                
+      Screen.msg('Bird chip not in database','ERROR', True)                                
       time.sleep(2)
       exit()      
 
@@ -243,6 +243,7 @@ def screen_my_bustard():
       Screen.msg_multi_lines(['Boulp','Bloupi machine plus plus','Le bigorno des pres n est pas propre'],'L`abeille coulle')
       Screen.msg_multi_lines(['Boulp','Bloupi machine plus plus','Le bigorno des pres n est pas propre'],'Olala l\'erreur', True)
       exit()
+# screen_my_bustard()
 
 def hard_reset():
       epd.clear_frame_memory(0xFF)
@@ -277,8 +278,7 @@ def main():
             serLec.close()
             flagLec = True
             while flagLec: #Boucle de lecture du scanner
-                  print('3')
-                  serLec.open()      
+                  serLec.open()   
                   uid = serLec.readline(100)
                   serLec.close()
                   if uid: #Si on détecte un uid
@@ -290,10 +290,10 @@ def main():
                         Ink_State = ""            
                         print('uid : ' + uid)
                         strUid = recupUID(uid)
-                        if strUid == None:
-                              Screen.msg('Please scan again','ERROR',True)
-                              sleep(1)
-                              break
+                        # if strUid == None:
+                        #       Screen.msg('Please scan again','ERROR',True)
+                        #       sleep(1)
+                        #       break
                         print('struid  = ' + strUid)
                         persoData = s.query(DB.Session).filter(DB.Session.ID_RFID == str(strUid).strip()).first() #Recherche de l'individu dans la database et recuperation de ses infos
                         print('persoData', persoData)
@@ -354,9 +354,9 @@ def main():
                                                       s.commit()
                                                 if (valid == classState.State.pendingLow or valid == classState.State.pendingHigh):
                                                       if valid == classState.State.pendingLow:
-                                                            Ink_State = "WEIGHT TOO LOW"
+                                                            Ink_State = "LOW WEIGHT"
                                                       if valid == classState.State.pendingHigh:
-                                                            Ink_State = "WEIGHT_TOO HIGH"
+                                                            Ink_State = "HIGH WEIGHT"
                                                       Screen.bird_it(Ink_Ring, Ink_Position, Ink_Weight, Ink_State)
                                                       flagVal = True
                                                       p = inkey()

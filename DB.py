@@ -54,12 +54,12 @@ class Log(Base):
 def testFiles():
     list_of_files = glob.glob('/home/pi/Share/Public/*.db') # * means all if need specific format then *.db
     if len(list_of_files)== 0:
-        Screen.error("NO DATABASE FOUND")
+        Screen.msg("RFID FILE NOT FOUND",'ERROR',True)
         exit()
     strdate = datetime.datetime.now().strftime('%Y%m%d')
     list_of_files = glob.glob('/home/pi/Share/Public/Prep_Weighing_'+strdate+'*.db')
     if len(list_of_files)== 0:
-        Screen.error("DATABASE OUTDATED")
+        Screen.msg("DATABASE OUTDATED",'ERROR',True)
         exit()
     latest_file = max(list_of_files, key=os.path.getctime)
     return latest_file
@@ -79,11 +79,11 @@ def testSession():
     session.commit()
     dateSession = (session.query(Log).filter(Log.ID == 1).first().Date)
     if dateSession.date() != datetime.date.today():
-        Screen.error("DATABASE OUTDATED")
+        Screen.msg("DATABASE OUTDATED",'ERROR',True)
         print("db outdated")
         return None
     else:
-        Screen.error("DATABASE UP TO DATE")
+        Screen.msg("DATABASE UP TO DATE")
         print("db up to date")
         return {'session': session, 'file': db_file}
 
@@ -93,12 +93,12 @@ def searchDB(session, uid):
 
 def testBird(data):
         if data is None: #l'oiseau n'est pas dans la database
-            Screen.error("BIRD NOT IN DATABASE")
+            Screen.msg("BIRD NOT IN DATABASE", 'ERROR', True)
             print("4.1")
             t = 0
             return t 
         elif data.Weight is not None: #l'oiseau a deja ete pese
-            Screen.error("BIRD ALREADY WEIGHED")
+            Screen.error("BIRD ALREADY WEIGHED",'NOTICE',True)
             print("4.2")
             t = 1
             return t
