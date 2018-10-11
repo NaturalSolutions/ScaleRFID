@@ -6,7 +6,14 @@ import epd2in9
 import epdif
 import PIL
 
-
+icon_details = {
+    0: u'\u26A0', #error
+    1: u'\u261B', #notice
+    3: u'\u2460', #petit 1
+    4: u'\u2461', #petit 2
+    5: u'\u2462', #petit 3
+    6: u'\u2463', #petit 4
+}
 # errorArray = [PREPARATION_NOT_FOUND,
 #                 PREPARATION_OUTDATED,
 #                 BIRD_CHIP_NOT_FOUND,
@@ -28,12 +35,12 @@ def blank():
     epd.set_frame_memory(image, 0, 0)
     epd.display_frame()
     epd.set_frame_memory(image, 0, 0)
-    epd.display_frame() 
+    epd.display_frame()     
 
 def getPoliceSize(strToParse):
     if(len(strToParse) < 16):
         return 30
-    elif(len(strToParse) <30):
+    elif(len(strToParse) <28):
         return 20
     else:
         return 15 
@@ -59,7 +66,7 @@ def error(error, label = None):
     epd.set_frame_memory(image, 0, 0)
     epd.display_frame() 
 
-def msg(str_msg, label = None, is_error = False):
+def msg(str_msg, label = None, icon = None):
     print(str_msg)    
     temp = PIL.Image.new('RGB', (296,128), color = "white")
     draw = PIL.ImageDraw.Draw(temp)        
@@ -68,8 +75,8 @@ def msg(str_msg, label = None, is_error = False):
     font = PIL.ImageFont.truetype("/home/pi/Desktop/ProjetRFID_Rework/DejaVuSans.ttf",30) #permet de choisir la olice et sa aille
     font_calculated = PIL.ImageFont.truetype("/home/pi/Desktop/ProjetRFID_Rework/DejaVuSans.ttf",font_size) #permet de choisir la olice et sa aille
     if label != None:
-        if(is_error):
-            override_label = u'\u26A0' + label
+        if(icon != None):
+            override_label = icon_details[icon] + label
         else:
             override_label = label
         draw.text((00,00), text = override_label, fill = 100, font = font) #permet d'ecrire du texte
@@ -111,7 +118,7 @@ def msg_multi_lines(lines, label = None, is_error = False):
     epd.set_frame_memory(image, 0, 0)
     epd.display_frame() 
 
-def bird_it(ring, position, weight, state):
+def bird_it_old(ring, position, weight, state):
     foo = PIL.Image.new('RGB', (296,128), color = "white")
     draw1 = PIL.ImageDraw.Draw(foo)
     font1 = PIL.ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",26)
@@ -120,6 +127,37 @@ def bird_it(ring, position, weight, state):
     draw1.text((00,25), " " + position, fill = 0, font = font1)
     draw1.text((00,50), " " + weight + "g", fill = 0, font = font1)
     draw1.text((00,75), " " + state , fill = 0, font = font2)
+    foo = foo.rotate(270)
+    foo.save('1.jpg')
+    image = PIL.Image.open('1.jpg')
+    epd.set_frame_memory(image, 0, 0)
+    epd.display_frame()
+    epd.set_frame_memory(image, 0, 0)
+    epd.display_frame()
+
+def bird_it(ring, position, weight, days, new_weight = None, new_state = None):
+    foo = PIL.Image.new('RGB', (296,128), color = "white")
+    draw1 = PIL.ImageDraw.Draw(foo)
+    font1 = PIL.ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",18)
+    font2 = PIL.ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans-Bold.ttf", 20)
+    font3 = PIL.ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans-Bold.ttf",24)
+    draw1.text((00,00),ring, fill = 0, font = font3)
+    draw1.text((00,30),position, fill = 0, font = font2)
+    if(weight != "" and str(weight) != 'None' ):
+        draw1.text((180,02),'Last : ' + weight + 'g', fill = 0, font = font1)
+        draw1.text((180,32),'Days : ' + days, fill = 0, font = font1)
+
+    if(new_weight != None):
+        draw1.text((00,60), new_weight + 'g', fill = 0, font = font3)
+        draw1.text((00,90),new_state, fill = 0, font = font2)
+    # weight_line = "Last weight : " + str(weight) + "g"
+    # # font_size = getPoliceSize(weight_line)
+    # font_calculated = PIL.ImageFont.truetype("/home/pi/Desktop/ProjetRFID_Rework/DejaVuSans.ttf",20) #permet de choisir la olice et sa aille
+    # draw1.text((00,50), weight_line, fill = 0, font = font_calculated)
+    # days_line = "Days since last weight : " + str(days)
+    # # font_size = getPoliceSize(days_line)
+    # font_calculated = PIL.ImageFont.truetype("/home/pi/Desktop/ProjetRFID_Rework/DejaVuSans.ttf",18) #permet de choisir la olice et sa aille
+    # draw1.text((00,75), "Days since last weight : " + str(days) , fill = 0, font = font_calculated)
     foo = foo.rotate(270)
     foo.save('1.jpg')
     image = PIL.Image.open('1.jpg')

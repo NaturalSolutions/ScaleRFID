@@ -54,7 +54,7 @@ class Log(Base):
 def testFiles():
     list_of_files = glob.glob('/home/pi/Share/Public/*.db') # * means all if need specific format then *.db
     if len(list_of_files)== 0:
-        Screen.msg("RFID FILE NOT FOUND",'ERROR',True)
+        Screen.msg("DATABASE FILE NOT FOUND",'ERROR',True)
         exit()
     strdate = datetime.datetime.now().strftime('%Y%m%d')
     list_of_files = glob.glob('/home/pi/Share/Public/Prep_Weighing_'+strdate+'*.db')

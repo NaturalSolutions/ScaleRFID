@@ -76,13 +76,15 @@ epd.display_frame()
 # latest_file = max(list_of_files, key=os.path.getctime)
 # dbPath = latest_file
 #TOTDO = dynamicfilename
-filename= 'WeightsFile_201801010.csv'
+filename= 'WeightsFile_201801011.csv'
 csvOutPath = '/home/pi/Share/Public/releve.csv'
 
 Ink_Ring = ""
 Ink_Position = ""
 Ink_Weight = ""
+Ink_Last_Weight = ""
 Ink_State = ""
+Ink_Day_Since = ""
 
 Weight = ""
 
@@ -240,8 +242,11 @@ def screenmethis():
 ##FINB TEst affichage Normal² 
 ##Tes affichage multi ligne full info outardes
 def screen_my_bustard():
-      Screen.msg_multi_lines(['Boulp','Bloupi machine plus plus','Le bigorno des pres n est pas propre'],'L`abeille coulle')
-      Screen.msg_multi_lines(['Boulp','Bloupi machine plus plus','Le bigorno des pres n est pas propre'],'Olala l\'erreur', True)
+      Screen.msg('Bloupi machine plus plus','Boulp',0)
+      time.sleep(2)
+      Screen.msg('Bloupi machine plus plus','Boulp',1)
+      
+      # Screen.msg_multi_lines(['Boulp','Bloupi machine plus plus','Le bigorno des pres n est pas propre'],'Olala l\'erreur', True)
       exit()
 # screen_my_bustard()
 
@@ -313,11 +318,16 @@ def main():
                         except AttributeError:
                               Screen.msg('Bird Position Not In Database', 'ERROR', True)                             
                               break
+
+                        Ink_Day_Since = str(persoData.Days_Since_Last_Weight)                        
+                        Ink_Last_Weight = str(persoData.Last_Weight)  
+                        print('Ink_Day_Since  ' + Ink_Day_Since)                      
+                        print('Ink_Last_Weight   ' + Ink_Last_Weight)                      
  
                         try:
                               Ink_Weight = str(persoData.Weight)
                               if Ink_Weight != 'None':
-                                    Screen.msg('Bird Already Weighted','NOTICE', True)                                   
+                                    Screen.msg('Bird Already Weighed','NOTICE', True)                                   
                                     break
                               if Ink_Weight == 'None':
                                     Ink_Weight = ""
@@ -325,7 +335,7 @@ def main():
                               Screen.msg('Bird Chip Not In Database','ERROR', True)                                                           
                               break  
 
-                        Screen.bird_it(Ink_Ring, Ink_Position, Ink_Weight, Ink_State)
+                        Screen.bird_it(Ink_Ring, Ink_Position, Ink_Last_Weight, Ink_Day_Since)
                         result = testIfEntryExists(persoData) 
 
                         if(result["isNew"]):
@@ -349,7 +359,7 @@ def main():
                                                 Ink_Weight = strWeight
                                                 if (valid == classState.State.accepted):
                                                       Ink_State = "OK"
-                                                      Screen.bird_it(Ink_Ring, Ink_Position, Ink_Weight, Ink_State)
+                                                      Screen.bird_it(Ink_Ring, Ink_Position, Ink_Last_Weight, Ink_Day_Since, Ink_Weight, Ink_State)
                                                       s.query(DB.Session).filter(DB.Session.ID_RFID == persoData.ID_RFID).update({"Weight" : WeightDB, "Date" : datetime.datetime.now()})
                                                       s.commit()
                                                 if (valid == classState.State.pendingLow or valid == classState.State.pendingHigh):
@@ -357,24 +367,24 @@ def main():
                                                             Ink_State = "LOW WEIGHT"
                                                       if valid == classState.State.pendingHigh:
                                                             Ink_State = "HIGH WEIGHT"
-                                                      Screen.bird_it(Ink_Ring, Ink_Position, Ink_Weight, Ink_State)
+                                                      Screen.bird_it(Ink_Ring, Ink_Position, Ink_Last_Weight, Ink_Day_Since, Ink_Weight, Ink_State)
                                                       flagVal = True
                                                       p = inkey()
                                                       while flagVal:
                                                             if p == "y":
                                                                   flagVal = False
                                                                   Ink_State = "OK"
-                                                                  Screen.bird_it(Ink_Ring, Ink_Position, Ink_Weight, Ink_State)
+                                                                  Screen.bird_it(Ink_Ring, Ink_Position, Ink_Last_Weight, Ink_Day_Since, Ink_Weight, Ink_State)
                                                                   s.query(DB.Session).filter(DB.Session.ID_RFID == persoData.ID_RFID).update({"Weight" : WeightDB, "Date" : datetime.datetime.now()})
                                                                   s.commit()
                                                             if p == "n":
                                                                   flagVal = False
                                                                   Ink_State = "WEIGHT CANCELLED"
-                                                                  Screen.bird_it(Ink_Ring, Ink_Position, Ink_Weight, Ink_State)
+                                                                  Screen.bird_it(Ink_Ring, Ink_Position, Ink_Last_Weight, Ink_Day_Since, Ink_Weight, Ink_State)
                                                 if (valid == classState.State.rejeted):
                                                       print("9.3")
                                                       Ink_State = "IMPOSSIBLE WEIGHT"
-                                                      Screen.bird_it(Ink_Ring, Ink_Position, Ink_Weight, Ink_State)
+                                                      Screen.bird_it(Ink_Ring, Ink_Position, Ink_Last_Weight, Ink_Day_Since, Ink_Weight, Ink_State)
                         else:
                               faa = Image.new('RGB', (296,128), color = "white")
                               draw1 = ImageDraw.Draw(faa)
