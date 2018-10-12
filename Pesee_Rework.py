@@ -76,7 +76,7 @@ epd.display_frame()
 # latest_file = max(list_of_files, key=os.path.getctime)
 # dbPath = latest_file
 #TOTDO = dynamicfilename
-filename= 'WeightsFile_201801011.csv'
+# filename= 'WeightsFile_201801011.csv'
 csvOutPath = '/home/pi/Share/Public/releve.csv'
 
 Ink_Ring = ""
@@ -115,8 +115,7 @@ dbinfos = DB.testSession()
 #       exit()
 s = dbinfos['session']
 dbPath = dbinfos['file']
-
-# # print('tested')
+filename = dbinfos['export_file_name']
 
 inkey = classGetch._Getch()
 
@@ -234,8 +233,7 @@ def remarks():
                   return 'Fat'
             elif p == 'd':
                   flagVal = False
-                  return 'Some problem have been noticed'
-
+                  return 'Some problem have been noticed'      
 
 
 #TEst des affichages a suppr 0 intérets
@@ -329,19 +327,19 @@ def main():
                         print('persoData', persoData)
 
                         if str(persoData) == 'None':
-                              Screen.msg('Bird Chip Not In Database', 'ERROR', True)                             
+                              Screen.msg('Bird Chip Not In Database', 'ERROR', 1)                             
                               break  
 
                         try:
                               Ink_Ring = str(persoData.ID_Reneco) #test en double
                         except AttributeError:
-                              Screen.msg('Bird Chip Not In Database', 'ERROR', True)                                                           
+                              Screen.msg('Bird Chip Not In Database', 'ERROR', 1)                                                           
                               # break
 
                         try: 
                               Ink_Position = str(persoData.Position)
                         except AttributeError:
-                              Screen.msg('Bird Position Not In Database', 'ERROR', True)                             
+                              Screen.msg('Bird Position Not In Database', 'ERROR', 1)                             
                               break
 
                         Ink_Day_Since = str(persoData.Days_Since_Last_Weight)                        
@@ -352,12 +350,12 @@ def main():
                         try:
                               Ink_Weight = str(persoData.Weight)
                               if Ink_Weight != 'None':
-                                    Screen.msg('Bird Already Weighed','NOTICE', True)                                   
+                                    Screen.msg('Bird Already Weighed','NOTICE', 1)                                   
                                     break
                               if Ink_Weight == 'None':
                                     Ink_Weight = ""
                         except AttributeError:
-                              Screen.msg('Bird Chip Not In Database','ERROR', True)                                                           
+                              Screen.msg('Bird Chip Not In Database','ERROR', 1)                                                           
                               break  
 
                         Screen.bird_it(Ink_Ring, Ink_Position, Ink_Last_Weight, Ink_Day_Since)

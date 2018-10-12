@@ -57,12 +57,17 @@ def testFiles():
         Screen.msg("DATABASE FILE NOT FOUND",'ERROR',True)
         exit()
     strdate = datetime.datetime.now().strftime('%Y%m%d')
-    list_of_files = glob.glob('/home/pi/Share/Public/Prep_Weighing_'+strdate+'*.db')
+    list_of_files = glob.glob('/home/pi/Share/Public/Prep_Weighing_*_'+strdate+'*.db')
     if len(list_of_files)== 0:
         Screen.msg("DATABASE OUTDATED",'ERROR',True)
         exit()
     latest_file = max(list_of_files, key=os.path.getctime)
     return latest_file
+
+def get_export_file_name(str_file_name):
+    str_splited = str_file_name.split('_')
+    species = str_splited[2]
+    return species
 
 def initDB(dbFile):
     engine = create_engine('sqlite:///' + dbFile) #Connexion de la base de donnees
@@ -73,6 +78,9 @@ def initDB(dbFile):
 
 def testSession():
     db_file = testFiles()
+    species = get_export_file_name(db_file)
+    strdate = datetime.datetime.now().strftime('%Y%m%d')
+    export_name = 'WeightsFile_' + species + '_' + strdate 
     session = initDB(db_file)
     date_access = Log(Date = datetime.datetime.now())
     session.add(date_access)
@@ -85,7 +93,7 @@ def testSession():
     else:
         Screen.msg("DATABASE UP TO DATE")
         print("db up to date")
-        return {'session': session, 'file': db_file}
+        return {'session': session, 'file': db_file, 'export_file_name': export_name}
 
 def searchDB(session, uid):
     dataBird = session.query(Session).filter(Session.ID_RFID == uid.strip()).first()

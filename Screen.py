@@ -13,7 +13,7 @@ icon_details = {
     4: u'\u2461', #petit 2
     5: u'\u2462', #petit 3
     6: u'\u2463', #petit 4
-    7: u'\u27A0'
+    7: u'\u27A0' #action
 }
 # errorArray = [PREPARATION_NOT_FOUND,
 #                 PREPARATION_OUTDATED,
@@ -92,10 +92,13 @@ def msg(str_msg, label = None, icon = None):
     epd.set_frame_memory(image, 0, 0)
     epd.display_frame() 
 
+
 def msg_multi_lines(lines, label = None, icon = None):
     temp = PIL.Image.new('RGB', (296,128), color = "white")
     draw = PIL.ImageDraw.Draw(temp)        
     offset = 0
+    offset_cpt = 0
+    font_size_force = None
     # font_size = getPoliceSize(str_msg)
     font = PIL.ImageFont.truetype("/home/pi/Desktop/ProjetRFID_Rework/DejaVuSans.ttf",30) #permet de choisir la olice et sa aille
     # font_calculated = PIL.ImageFont.truetype("/home/pi/Desktop/ProjetRFID_Rework/DejaVuSans.ttf",font_size) #permet de choisir la olice et sa aille
@@ -106,13 +109,17 @@ def msg_multi_lines(lines, label = None, icon = None):
             override_label = label
         draw.text((00,00), text = override_label, fill = 100, font = font) #permet d'ecrire du texte
         offset = 30
+        offset_cpt = 30
     if(len(lines)>3):
-        offset = 20
+        # draw.text((00,offset), text = ' ', fill = 100, font = font) #permet d'ecrire du texte        
+        offset_cpt = 20
+        font_size_force = 20
     for str_line in lines:
-        font_size = getPoliceSize(str_line)
+        font_size = font_size_force if font_size_force != None else getPoliceSize(str_line)
+        print('boulasse   z    ' + str(font_size))
         font_calculated = PIL.ImageFont.truetype("/home/pi/Desktop/ProjetRFID_Rework/DejaVuSans.ttf",font_size) #permet de choisir la olice et sa aille
         draw.text((00,offset), text = str_line, fill = 100, font = font_calculated) #permet d'ecrire du texte
-        offset += 30
+        offset += offset_cpt
     temp = temp.rotate(270)
     temp.save('temp.jpg')
     image = PIL.Image.open('temp.jpg')

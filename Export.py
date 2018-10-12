@@ -22,7 +22,7 @@ def export(dbPath, nameFile):
         p = 0
         for row in reader:
             if p != 0:
-                writer.writerow([row[0]] + [date] + [row[2]] + [row[3]])
+                writer.writerow([row[0]] + [date.strftime("%d/%m/%Y")] + [row[2]] + [row[3]])
             else:
                 p = 1
     csv_in.close()
