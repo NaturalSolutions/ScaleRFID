@@ -27,5 +27,5 @@ if __name__ == '__main__':
     print("Test a key")
     inkey = _Getch()
     p = inkey()
-    print p
+    # print(p)
     

@@ -163,7 +163,7 @@ def recupUID(uid):
       # except Exception:
             # return None
       uid = uid[0:15]
-      print uid
+      print(uid)
  
       return uid
 
@@ -234,7 +234,6 @@ def remarks():
             elif p == 'd':
                   flagVal = False
                   return 'Some problem have been noticed'      
-
 
 #TEst des affichages a suppr 0 intérets
 def screenmethis():
@@ -367,7 +366,8 @@ def main():
                               while flagBal: #Boucle de lecture de la balance
                                     time.sleep(1)
                                     try:
-                                          Weight = raw_input()
+                                        #   Weight = raw_input()
+                                        Weight = Ink_Last_Weight
                                     except EOFError:
                                           pass
                                     if Weight:

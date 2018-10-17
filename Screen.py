@@ -5,6 +5,8 @@
 import epd2in9
 import epdif
 import PIL
+from PIL import Image, ImageDraw, ImageFont, ImageOps
+
 
 icon_details = {
     0: u'\u26A0', #error
@@ -24,6 +26,7 @@ icon_details = {
 #                 ]
 
 epd = epd2in9.EPD()
+epd.init(epd.lut_partial_update)
 
 
 def reset():
@@ -154,7 +157,8 @@ def bird_it(ring, position, weight, days, new_weight = None, new_state = None):
     draw1.text((00,00),ring, fill = 0, font = font3)
     draw1.text((00,30),position, fill = 0, font = font2)
     if(weight != "" and str(weight) != 'None' ):
-        draw1.text((180,02),'Last : ' + weight + 'g', fill = 0, font = font1)
+        # draw1.text((180,02),'Last : ' + weight + 'g', fill = 0, font = font1)
+        draw1.text((180,2),'Last : ' + weight + 'g', fill = 0, font = font1)
         draw1.text((180,32),'Days : ' + days, fill = 0, font = font1)
 
     if(new_weight != None):
