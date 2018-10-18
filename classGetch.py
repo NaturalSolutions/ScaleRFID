@@ -20,12 +20,5 @@ class _GetchUnix:
             tty.setraw(sys.stdin.fileno())
             ch = sys.stdin.read(1)
         finally:
-            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)        
         return ch
-
-if __name__ == '__main__':
-    print("Test a key")
-    inkey = _Getch()
-    p = inkey()
-    # print(p)
-    

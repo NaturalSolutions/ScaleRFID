@@ -1,5 +1,5 @@
 from multiprocessing import Process
-import Pesee_Rework as pr
+# import Pesee_Rework as pr
 import Killswitch as ks
 print('my manager')
 myprocess = []
