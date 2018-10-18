@@ -37,7 +37,7 @@ class Session(Base):
     Note = Column(String)
 
     def __repr__(self):
-        return "<Session(ID = '%s', ID_Reneco = '%s', ID_RFID = '%s', Position = '%s', Age = '%s', Date_Last_Weight = '%s', Days_Since_Last_Weight = '%s', Last_Weight = '%s', Date_Session = '%s', Weight_Min_Path = '%s', Weight_Max_Path = '%s', Weight_Min_Imp = '%s', Weight_Max_Imp = '%s', Date = '%s', Weight = '%s', Note = '%s')>" % (  # noqa: E501
+        return '<Session(ID = "%s", ID_Reneco = "%s", ID_RFID = "%s", Position = "%s", Age = "%s", Date_Last_Weight = "%s", Days_Since_Last_Weight = "%s", Last_Weight = "%s", Date_Session = "%s", Weight_Min_Path = "%s", Weight_Max_Path = "%s", Weight_Min_Imp = "%s", Weight_Max_Imp = "%s", Date = "%s", Weight = "%s", Note = "%s")>' % (  # noqa: E501
             self.ID, self.ID_Reneco, self.ID_RFID, self.Position, self.Age, self.Date_Last_Weight, self.Days_Since_Last_Weight, self.Last_Weight, self.Date_Session, self.Weight_Min_Path, self.Weight_Max_Path, self.Weight_Min_Imp, self.Weight_Max_Imp, self.Date, self.Weight, self.Note)  # noqa: E501
 
 
@@ -48,7 +48,7 @@ class Log(Base):
     Comment = Column(String)
 
     def __repr__(self):
-        return "<Log(ID = '%s', Date = '%s', Comment = '%s'>" % (
+        return '<Log(ID="%s", Date="%s", Comment="%s">' % (
             self.ID, self.Date, self.Comment)
 
 
@@ -60,13 +60,13 @@ def testFiles():
     # * means all if need specific format then *.db
     list_of_files = glob.glob('/home/pi/Share/Public/*.db')
     if len(list_of_files) == 0:
-        Screen.msg("DATABASE FILE NOT FOUND", 'ERROR', True)
+        Screen.msg('DATABASE FILE NOT FOUND', 'ERROR', True)
         exit()
     strdate = datetime.datetime.now().strftime('%Y%m%d')
     list_of_files = glob.glob(
         '/home/pi/Share/Public/Prep_Weighing_*_' + strdate + '*.db')
     if len(list_of_files) == 0:
-        Screen.msg("DATABASE OUTDATED", 'ERROR', True)
+        Screen.msg('DATABASE OUTDATED', 'ERROR', True)
         exit()
     latest_file = max(list_of_files, key=os.path.getctime)
     return latest_file
@@ -97,68 +97,110 @@ def testSession():
     session.commit()
     dateSession = (session.query(Log).filter(Log.ID == 1).first().Date)
     if dateSession.date() != datetime.date.today():
-        Screen.msg("DATABASE OUTDATED",'ERROR',True)
-        print("db outdated")
+        Screen.msg('DATABASE OUTDATED', 'ERROR', True)
+        print('db outdated')
         return None
     else:
-        Screen.msg("DATABASE UP TO DATE")
-        print("db up to date")
-        return {'session': session, 'file': db_file, 'export_file_name': export_name}
+        Screen.msg('DATABASE UP TO DATE')
+        print('db up to date')
+        return {
+            'session': session,
+            'file': db_file,
+            'export_file_name': export_name}
+
 
 def searchDB(session, uid):
-    dataBird = session.query(Session).filter(Session.ID_RFID == uid.strip()).first()
+    dataBird = session.query(Session)\
+                      .filter(Session.ID_RFID == uid.strip())\
+                      .first()
     return dataBird
 
-def testBird(data):
-        if data is None: #l'oiseau n'est pas dans la database
-            Screen.msg("BIRD NOT IN DATABASE", 'ERROR', True)
-            print("4.1")
-            t = 0
-            return t
-        elif data.Weight is not None: #l'oiseau a deja ete pese
-            Screen.error("BIRD ALREADY WEIGHED",'NOTICE',True)
-            print("4.2")
-            t = 1
-            return t
-        else:
-            Screen.ink(data.ID_Reneco,data.Position,data.Age," " ," ",  data.Last_Weight, data.Days_Since_Last_Weight)
-            print("4.3")
-            t = 2
-            return t
 
-def validateBird( session,result, key, data, weight):
+def testBird(data):
+    # l'oiseau n'est pas dans la database
+    if data is None:
+        Screen.msg('BIRD NOT IN DATABASE', 'ERROR', True)
+        print('4.1')
+        t = 0
+        return t
+    # l'oiseau a deja ete pese
+    elif data.Weight is not None:
+        Screen.error('BIRD ALREADY WEIGHED', 'NOTICE', True)
+        print('4.2')
+        t = 1
+        return t
+    else:
+        Screen.ink(data.ID_Reneco, data.Position, data.Age, ' ', ' ',
+                   data.Last_Weight, data.Days_Since_Last_Weight)
+        print('4.3')
+        t = 2
+        return t
+
+
+def validateBird(session, result, key, data, weight):
     print(result)
     if result == 0:
-        print("7.0")
-        Screen.ink(data.ID_Reneco,data.Position,data.Age,weight ,"OK",  data.Last_Weight, data.Days_Since_Last_Weight)
-        session.query(Session).filter(Session.ID_RFID == persoData.ID_RFID).update({"Weight" : weight, "Date" : datetime.datetime.now()})
+        print('7.0')
+        Screen.ink(data.ID_Reneco, data.Position, data.Age, weight, 'OK',
+                   data.Last_Weight, data.Days_Since_Last_Weight)
+        # FIXME: persoData ?
+        session.query(Session)\
+               .filter(Session.ID_RFID == data.ID_RFID)\
+               .update({'Weight': weight, 'Date': datetime.datetime.now()})
         session.commit()
     elif result == 1:
-        print("7.1")
-        Screen.ink(data.ID_Reneco,data.Position,data.Age,weight ,"IMPOSSIBLE WEIGHT",  data.Last_Weight, data.Days_Since_Last_Weight)
+        print('7.1')
+        Screen.ink(
+            data.ID_Reneco,
+            data.Position, data.Age, weight, 'IMPOSSIBLE WEIGHT',
+            data.Last_Weight, data.Days_Since_Last_Weight)
     elif result == 21:
-        print("7.21")
-        Screen.ink(data.ID_Reneco,data.Position,data.Age,weight ,"LOW WEIGHT",  data.Last_Weight, data.Days_Since_Last_Weight)
+        print('7.21')
+        Screen.ink(
+            data.ID_Reneco,
+            data.Position, data.Age, weight, 'LOW WEIGHT',
+            data.Last_Weight, data.Days_Since_Last_Weight)
         flagVal = True
         while flagVal:
-            if key == "p":
+            if key == 'p':
                 flagVal = False
-                Screen.ink(data.ID_Reneco,data.Position,data.Age,weight ,"VALIDATED",  data.Last_Weight, data.Days_Since_Last_Weight)
-                session.query(Session).filter(Session.ID_RFID == data.ID_RFID).update({"Weight" : weight, "Date" : datetime.datetime.now()})
+                Screen.ink(
+                    data.ID_Reneco,
+                    data.Position, data.Age, weight, 'VALIDATED',
+                    data.Last_Weight, data.Days_Since_Last_Weight)
+                session.query(Session)\
+                       .filter(Session.ID_RFID == data.ID_RFID)\
+                       .update({'Weight': weight,
+                                'Date': datetime.datetime.now()})
                 session.commit()
-            elif key == "b":
+            elif key == 'b':
                 flagVal = False
-                Screen.ink(data.ID_Reneco,data.Position,data.Age,weight ,"CANCELLED",  data.Last_Weight, data.Days_Since_Last_Weight)
+                Screen.ink(
+                    data.ID_Reneco,
+                    data.Position, data.Age, weight, 'CANCELLED',
+                    data.Last_Weight, data.Days_Since_Last_Weight)
     elif result == 22:
-        print("7.22")
-        Screen.ink(data.ID_Reneco,data.Position,data.Age,weight ,"HIGH WEIGHT",  data.Last_Weight, data.Days_Since_Last_Weight)
+        print('7.22')
+        Screen.ink(
+            data.ID_Reneco,
+            data.Position, data.Age, weight, 'HIGH WEIGHT',
+            data.Last_Weight, data.Days_Since_Last_Weight)
         flagVal = True
         while flagVal:
-            if key == "p":
+            if key == 'p':
                 flagVal = False
-                Screen.ink(data.ID_Reneco,data.Position,data.Age,weight ,"VALIDATED",  data.Last_Weight, data.Days_Since_Last_Weight)
-                session.query(Session).filter(Session.ID_RFID == data.ID_RFID).update({"Weight" : weight, "Date" : datetime.datetime.now()})
+                Screen.ink(
+                    data.ID_Reneco,
+                    data.Position, data.Age, weight, 'VALIDATED',
+                    data.Last_Weight, data.Days_Since_Last_Weight)
+                session.query(Session)\
+                       .filter(Session.ID_RFID == data.ID_RFID)\
+                       .update({'Weight': weight,
+                                'Date': datetime.datetime.now()})
                 session.commit()
-            elif key == "b":
+            elif key == 'b':
                 flagVal = False
-                Screen.ink(data.ID_Reneco,data.Position,data.Age,weight ,"CANCELLED",  data.Last_Weight, data.Days_Since_Last_Weight)
+                Screen.ink(
+                    data.ID_Reneco,
+                    data.Position, data.Age, weight, 'CANCELLED',
+                    data.Last_Weight, data.Days_Since_Last_Weight)
