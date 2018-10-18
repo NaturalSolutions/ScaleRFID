@@ -117,7 +117,7 @@ def testBird(data):
             return t
 
 def validateBird( session,result, key, data, weight):
-    print result
+    print(result)
     if result == 0:
         print("7.0")
         Screen.ink(data.ID_Reneco,data.Position,data.Age,weight ,"OK",  data.Last_Weight, data.Days_Since_Last_Weight)

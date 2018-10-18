@@ -311,7 +311,7 @@ def main():
                         Ink_Position = ""
                         Ink_Weight = ""
                         Ink_State = ""            
-                        print('uid : ' + uid)
+                        print('uid : ' + str(uid))
                         try:
                               strUid = recupUID(uid)
                         except Exception:
@@ -373,7 +373,7 @@ def main():
                                     if Weight:
                                           flagBal = False
                                           strWeight = str(Weight) #Conversion binaire to string pour pce
-                                          print strWeight
+                                          print(strWeight)
                                           intWeight = int(re.findall("\d+", strWeight)[0]) #On garde que le nombre int
                                           strWeight = str(intWeight)
                                           if len(strWeight)>=0: #Si on détecte un poids                                                

@@ -25,7 +25,7 @@
  #
 
 import epdif
-import Image
+from PIL import Image
 import RPi.GPIO as GPIO
 
 # Display resolution
@@ -214,7 +214,7 @@ class EPD:
         self.set_memory_pointer(0, 0)
         self.send_command(WRITE_RAM)
         # send the color data
-        for i in range(0, self.width / 8 * self.height):
+        for i in range(0, int(self.width / 8. * self.height)):
             self.send_data(color)
 
 ##

@@ -9,7 +9,7 @@ inkey = classGetch._Getch()
 def printkill():
     Screen.reset()
     Screen.msg_multi_lines(['1 - shutdown the SCALE', '2 - Cancel             '],'WARNING', 1)
-
+    
 
 def killemall(isfirst, cpt = 0):
     # inkey = classGetch._Getch()
@@ -31,32 +31,36 @@ def killemall(isfirst, cpt = 0):
             
     if(cpt < 4):
         while flagVal:
-                if p == 'a'
-                    print('ok = ' + str(cpt))
-                    flagVal = False
-                    validstamp = datetime.datetime.now()
-                    killemall(False, cpt +1)  
-                """A supprimer danger"""
-                if p == 'c':
-                    exit()              
-                else:
-                    validstamp = None
-                    datetime.datetime.now()
-                    killemall(True, 0)
+            if p == 'a' or p =='q':
+                print('ok = ' + str(cpt))
+                flagVal = False
+                validstamp = datetime.datetime.now()
+                killemall(False, cpt +1)  
+            """A supprimer danger"""
+            if p == 'c':
+                exit()              
+            else:
+                validstamp = None
+                datetime.datetime.now()
+                killemall(True, 0)
     else:
         printkill()
         while flagVal:
-                if p == 'd':
-                    print('end == kill = ' + str(cpt))
-                    flagVal = False
-                    exit() 
-                else:
-                    validstamp = None
-                    datetime.datetime.now()
-                    killemall(True,0) 
+            print('loop')
+            if p == 'd':
+                print('end == kill = ' + str(cpt))
+                flagVal = False
+                exit() 
+            else:
+                validstamp = None
+                datetime.datetime.now()
+                killemall(True,0) 
 
 def main():
 
     killemall(True)
 
-main()
+
+if __name__ == '__main__':
+      main()
+# main()
