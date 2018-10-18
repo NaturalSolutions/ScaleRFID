@@ -1,6 +1,8 @@
 import classGetch
 import datetime
 import Screen
+# import Pesee_Rework as pr
+
 
 validstamp = None
 isFirst = True
@@ -50,7 +52,9 @@ def killemall(isfirst, cpt = 0):
             if p == 'd':
                 print('end == kill = ' + str(cpt))
                 flagVal = False
+                print('shutdown')
                 exit() 
+
             else:
                 validstamp = None
                 datetime.datetime.now()
@@ -59,6 +63,7 @@ def killemall(isfirst, cpt = 0):
 def main():
 
     killemall(True)
+    # pr.main()
 
 
 if __name__ == '__main__':
