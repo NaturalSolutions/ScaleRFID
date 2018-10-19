@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# coding: utf-8
 
 import logging
 # 'Import'
@@ -31,9 +32,15 @@ import classGetch
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
-_console_logger = logging.StreamHandler()
-_console_logger.setLevel(logging.DEBUG)
-logger.addHandler(_console_logger)
+_consolelog = logging.StreamHandler()
+_consolelog.setLevel(logging.DEBUG)
+logger.addHandler(_consolelog)
+_filelog = logging.RotatingFileHandler(
+    'log/pesee.log', mode='a',
+    maxBytes=500000, backupCount=10,
+    encoding='utf-8')
+_filelog.setLevel(logging.DEBUG)
+logger.addHandler(_filelog)
 
 # 'Intialisation des ecrans'
 
@@ -121,7 +128,7 @@ inkey = classGetch._Getch()
 
 
 def testIfEntryExists(testPresence):
-    # Vérification de la presence de l'outade dans la base de données
+    # Verification de la presence de l'outade dans la base de donnees
     # et si elle a deja ete pese, regarde environ 30000 outardes
     global languageChoice
     if testPresence is None:
@@ -133,7 +140,7 @@ def testIfEntryExists(testPresence):
 
 
 def testWeight(ref, WeightMes):
-    # Test de la pesée pour voir si l'animal a un poids pathologique
+    # Test de la pesee pour voir si l'animal a un poids pathologique
     # ou impossible pour eviter d'enregistreer des valeurs incoherentes
     # et prevenir les maladies possibles de facon independante
 
@@ -207,7 +214,7 @@ def recupWeight(Weight):
 #       epd.display_frame()
 
 
-# '''Vérification date de la base de données'''
+# '''Verification date de la base de donnees'''
 
 Ink_Ring = ''
 Ink_Position = ''
@@ -240,7 +247,7 @@ def remarks():
             return 'Some problem have been noticed'
 
 
-# Test des affichages a suppr 0 intérets
+# Test des affichages a suppr 0 interets
 def screenmethis():
     logger.debug('reset')
     epd.clear_frame_memory(0xFF)
@@ -264,7 +271,7 @@ def screenmethis():
 
 
 # screenmethis()
-# #FINB TEst affichage Normal²
+# #FINB TEst affichage Normal
 # #Tes affichage multi ligne full info outardes
 def screen_my_bustard():
     Screen.msg('Bloupi machine plus plus', 'Boulp', 0)
@@ -298,8 +305,8 @@ except serial.SerialException:
     Screen.msg('RFID Reader Disconnected', 'ERROR', True)
     sys.exit()
 
-# Fermeture des ports pour les ouvrir seulement quand nécessaire
-# pour eviter le stack de données
+# Fermeture des ports pour les ouvrir seulement quand necessaire
+# pour eviter le stack de donnees
 serLec.close()
 
 
@@ -401,7 +408,7 @@ def main():
                             intWeight = int(
                                 re.findall(r'\d+', strWeight)[0])
                             strWeight = str(intWeight)
-                            # Si on détecte un poids
+                            # Si on detecte un poids
                             if len(strWeight) >= 0:
                                 WeightDB = recupWeight(strWeight)
                                 valid = testWeight(persoData, WeightDB)
@@ -500,7 +507,7 @@ def main():
             serLec.open()
             uid = serLec.readline(100)
             serLec.close()
-            # Si on détecte un uid
+            # Si on detecte un uid
             if uid:
                 flagLec = False
                 serLec.close()
