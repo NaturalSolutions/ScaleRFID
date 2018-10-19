@@ -2,8 +2,6 @@
 # coding: utf-8
 
 import os
-import logging
-import logging.handlers
 # 'Import'
 # try:
 #     import thread
@@ -27,23 +25,9 @@ import epd2in9
 from PIL import Image, ImageDraw, ImageFont  # , ImageOps
 # import glob
 
+from settings import ASSETS, logger
 import classState
 import classGetch
-
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-_consolelog = logging.StreamHandler()
-_consolelog.setLevel(logging.DEBUG)
-logger.addHandler(_consolelog)
-_filelog = logging.handlers.RotatingFileHandler(
-    'log/pesee.log', mode='a',
-    maxBytes=500000, backupCount=10,
-    encoding='utf-8')
-_filelog.setLevel(logging.DEBUG)
-logger.addHandler(_filelog)
-
-ASSETS = '/home/pi/ScaleRFID/assets'
 
 # 'Intialisation des ecrans'
 

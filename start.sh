@@ -10,8 +10,8 @@ echo Script incoming
 
 # sleep 5
 sudo venv/bin/python3 Pesee_Rework.py &
-# save lock.$$
 sudo venv/bin/python3 Killswitch.py
+# save lock.$$
 # kill -USR1 $(cat lock.$$)
 
 # sudo apt install -y \
