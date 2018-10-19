@@ -512,7 +512,9 @@ def main():
                 flagLec = False
                 serLec.close()
                 result = on_detect_uid(uid)
-                logger.debug(result)
+                if result['action'] == 'exit_loop':
+                    logger.debug(result)
+                    break
 
             logger.debug('fin')
             Export.export(dbPath, filename)
