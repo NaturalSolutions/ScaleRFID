@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 # coding: utf-8
 
+import os
 import logging
+import logging.handlers
 # 'Import'
 # try:
 #     import thread
@@ -9,7 +11,6 @@ import logging
 #     import _thread as thread
 import serial
 # import sqlite3
-# import os
 import DB
 import re
 import datetime
@@ -35,12 +36,14 @@ logger.setLevel(logging.DEBUG)
 _consolelog = logging.StreamHandler()
 _consolelog.setLevel(logging.DEBUG)
 logger.addHandler(_consolelog)
-_filelog = logging.RotatingFileHandler(
+_filelog = logging.handlers.RotatingFileHandler(
     'log/pesee.log', mode='a',
     maxBytes=500000, backupCount=10,
     encoding='utf-8')
 _filelog.setLevel(logging.DEBUG)
 logger.addHandler(_filelog)
+
+ASSETS = '/home/pi/ScaleRFID/assets'
 
 # 'Intialisation des ecrans'
 
@@ -55,7 +58,7 @@ Screen.reset()
 
 faa = Image.new('RGB', (296, 128), color='white')
 draw1 = ImageDraw.Draw(faa)
-font1 = ImageFont.truetype('/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf', 30)
+font1 = ImageFont.truetype(os.path.join(ASSETS, 'DejaVuSans.ttf'), 30)
 draw1.text((00, 00), 'STARTING...WAIT', fill=100, font=font1)
 faa = faa.rotate(270)
 faa.save('1.jpg')
@@ -97,7 +100,7 @@ Weight = ''
 #       faa = Image.new('RGB', (296,128), color = 'white')
 #       draw1 = ImageDraw.Draw(faa)
 #       font1 = ImageFont.truetype(
-#            '/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf', 20)
+#            os.path.join(ASSETS, 'DejaVuSans.ttf', 20)
 #       draw1.text((00, 00), 'ERROR', fill=100, font=font1)
 #       draw1.text((00, 30), 'Database Not Found', fill=100, font=font1)
 #       faa = faa.rotate(270)
@@ -186,8 +189,8 @@ def recupWeight(Weight):
 # def ink(ring, position, weight, state):
 #       foo = Image.new('RGB', (296,128), color = 'white')
 #       draw1 = ImageDraw.Draw(foo)
-#       font1 = ImageFont.truetype('/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf',26)  # noqa: E501
-#       font2 = ImageFont.truetype('/home/pi/Desktop/ProjetRFID/DejaVuSans-Bold.ttf', 20)  # noqa: E501
+#       font1 = ImageFont.truetype(os.path.join(ASSETS, 'DejaVuSans.ttf'),26)  # noqa: E501
+#       font2 = ImageFont.truetype(os.path.join(ASSETS, 'DejaVuSans-Bold.ttf'), 20)  # noqa: E501
 #       draw1.text((00,00), ' ' + ring, fill = 0, font = font1)
 #       draw1.text((00,25), ' ' + position, fill = 0, font = font1)
 #       draw1.text((00,50), ' ' + weight + 'g', fill = 0, font = font1)
@@ -203,7 +206,7 @@ def recupWeight(Weight):
 # def reset():
 #       faa = Image.new('RGB', (296,128), color = 'white')
 #       draw1 = ImageDraw.Draw(faa)
-#       font1 = ImageFont.truetype('/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf',34)  # noqa: E501
+#       font1 = ImageFont.truetype(os.path.join(ASSETS, 'DejaVuSans.ttf'),34)  # noqa: E501
 #       draw1.text((00,00), 'READY', fill = 100, font = font1)
 #       faa = faa.rotate(270)
 #       faa.save('1.jpg')
@@ -320,187 +323,193 @@ def main():
         serLec.close()
         flagLec = True
 
+        def get_bird(uid):
+            try:
+                strUid = recupUID(uid)
+                # FIXME: define strUid set
+                strUid = str(strUid).strip()
+            except Exception as e:
+                return {'error': 'exit', 'message': str(e)}
+
+            # if strUid == None:
+            #       Screen.msg('Please scan again','ERROR',True)
+            #       sleep(1)
+            #       break
+            logger.debug('struid  = ' + strUid)
+
+            # Recherche de l'individu dans la database
+            # et recuperation de ses infos
+            bird_data = s.query(DB.Session)\
+                         .filter(DB.Session.ID_RFID == strUid)\
+                         .first()
+            return bird_data
+
         def on_detect_uid(uid):
-                Ink_Ring = ''
-                Ink_Position = ''
-                Ink_Weight = ''
-                Ink_State = ''
+            logger.debug('uid : ' + str(uid))
+            Ink_Ring = ''
+            Ink_Position = ''
+            Ink_Weight = ''
+            Ink_State = ''
 
-                logger.debug('uid : ' + str(uid))
-                try:
-                    strUid = recupUID(uid)
-                    # FIXME: define strUid set
-                    strUid = str(strUid).strip()
-                except Exception as e:
-                    return {'error': 'exit', 'message': str(e)}
+            bird_data = get_bird(uid)
 
-                # if strUid == None:
-                #       Screen.msg('Please scan again','ERROR',True)
-                #       sleep(1)
-                #       break
-                logger.debug('struid  = ' + strUid)
+            if bird_data is None:
+                e = 'Bird Chip Not In Database'
+                Screen.msg(e, 'ERROR', 1)
+                return {'action': 'exit_loop', 'message': e}
 
-                # Recherche de l'individu dans la database
-                # et recuperation de ses infos
-                persoData = s.query(DB.Session)\
-                             .filter(
-                                 DB.Session.ID_RFID == strUid)\
-                             .first()
-                logger.debug('persoData', persoData)
+            logger.debug('bird_data', bird_data)
 
-                if persoData is None:
-                    e = 'Bird Chip Not In Database'
-                    Screen.msg(e, 'ERROR', 1)
-                    return {'action': 'exit_loop', 'message': e}
+            try:
+                # test en double
+                Ink_Ring = str(bird_data.ID_Reneco)
+            except AttributeError:
+                Screen.msg('Bird Chip Not In Database', 'ERROR', 1)
+                # break
 
-                try:
-                    # test en double
-                    Ink_Ring = str(persoData.ID_Reneco)
-                except AttributeError:
-                    Screen.msg('Bird Chip Not In Database', 'ERROR', 1)
-                    # break
+            try:
+                Ink_Position = str(bird_data.Position)
+            except AttributeError:
+                e = 'Bird Position Not In Database'
+                Screen.msg(e, 'ERROR', 1)
+                return {'action': 'exit_loop', 'message': str(e)}
 
-                try:
-                    Ink_Position = str(persoData.Position)
-                except AttributeError:
-                    e = 'Bird Position Not In Database'
-                    Screen.msg(e, 'ERROR', 1)
-                    return {'action': 'exit_loop', 'message': str(e)}
+            Ink_Day_Since = str(bird_data.Days_Since_Last_Weight)
+            Ink_Last_Weight = str(bird_data.Last_Weight)
+            logger.debug('Ink_Day_Since  ' + Ink_Day_Since)
+            logger.debug('Ink_Last_Weight   ' + Ink_Last_Weight)
 
-                Ink_Day_Since = str(persoData.Days_Since_Last_Weight)
-                Ink_Last_Weight = str(persoData.Last_Weight)
-                logger.debug('Ink_Day_Since  ' + Ink_Day_Since)
-                logger.debug('Ink_Last_Weight   ' + Ink_Last_Weight)
+            try:
+                Ink_Weight = str(bird_data.Weight)
+                if Ink_Weight != 'None':
+                    Screen.msg('Bird Already Weighed', 'NOTICE', 1)
+                    return {'error'}
+                if Ink_Weight == 'None':
+                    Ink_Weight = ''
+            except AttributeError:
+                e = 'Bird Chip Not In Database'
+                Screen.msg(e, 'ERROR', 1)
+                return {'action': 'exit_loop', 'message': e}
 
-                try:
-                    Ink_Weight = str(persoData.Weight)
-                    if Ink_Weight != 'None':
-                        Screen.msg('Bird Already Weighed', 'NOTICE', 1)
-                        return {'error'}
-                    if Ink_Weight == 'None':
-                        Ink_Weight = ''
-                except AttributeError:
-                    e = 'Bird Chip Not In Database'
-                    Screen.msg(e, 'ERROR', 1)
-                    return {'action': 'exit_loop', 'message': e}
+            Screen.bird_it(
+                Ink_Ring, Ink_Position, Ink_Last_Weight, Ink_Day_Since)
+            result = testIfEntryExists(bird_data)
 
-                Screen.bird_it(
-                    Ink_Ring, Ink_Position, Ink_Last_Weight, Ink_Day_Since)
-                result = testIfEntryExists(persoData)
+            logger.debug('result: %s', result)
 
-                if (result['isNew']):
-                    flagBal = True
-                    Weight = ''
-                    # Boucle de lecture de la balance
-                    while flagBal:
-                        time.sleep(1)
-                        try:
-                            #   Weight = raw_input()
-                            Weight = Ink_Last_Weight
-                        except EOFError:
-                            pass
-                        if Weight:
-                            flagBal = False
-                            strWeight = str(Weight)
-                            logger.debug(strWeight)
-                            # Conversion binaire to string pour pce
-                            # On garde que le nombre int
-                            intWeight = int(
-                                re.findall(r'\d+', strWeight)[0])
-                            strWeight = str(intWeight)
-                            # Si on detecte un poids
-                            if len(strWeight) >= 0:
-                                WeightDB = recupWeight(strWeight)
-                                valid = testWeight(persoData, WeightDB)
-                                Ink_Weight = strWeight
-                                if (valid == classState.State.accepted):
-                                    Ink_State = 'OK'
-                                    Screen.bird_it(
-                                        Ink_Ring, Ink_Position,
-                                        Ink_Last_Weight, Ink_Day_Since,
-                                        Ink_Weight, Ink_State)
-                                    time.sleep(2)
-                                    current_remark = remarks()
-                                    s.query(DB.Session)\
-                                     .filter(
-                                         DB.Session.ID_RFID == persoData.ID_RFID  # noqa: E501
-                                         )\
-                                     .update({
-                                         'Weight': WeightDB,
-                                         'Date': datetime.datetime.now(),
-                                         'Note': current_remark})
-                                    s.commit()
-                                if (valid in {
-                                        classState.State.pendingLow,
-                                        classState.State.pendingHigh}):
+            if (result['isNew']):
+                flagBal = True
+                Weight = ''
+                # Boucle de lecture de la balance
+                while flagBal:
+                    time.sleep(1)
+                    try:
+                        #   Weight = raw_input()
+                        Weight = Ink_Last_Weight
+                    except EOFError:
+                        pass
+                    if Weight:
+                        flagBal = False
+                        strWeight = str(Weight)
+                        logger.debug(strWeight)
+                        # Conversion binaire to string pour pce
+                        # On garde que le nombre int
+                        intWeight = int(
+                            re.findall(r'\d+', strWeight)[0])
+                        strWeight = str(intWeight)
+                        # Si on detecte un poids
+                        if len(strWeight) >= 0:
+                            WeightDB = recupWeight(strWeight)
+                            valid = testWeight(bird_data, WeightDB)
+                            Ink_Weight = strWeight
+                            if (valid == classState.State.accepted):
+                                Ink_State = 'OK'
+                                Screen.bird_it(
+                                    Ink_Ring, Ink_Position,
+                                    Ink_Last_Weight, Ink_Day_Since,
+                                    Ink_Weight, Ink_State)
+                                time.sleep(2)
+                                current_remark = remarks()
+                                s.query(DB.Session)\
+                                 .filter(
+                                     DB.Session.ID_RFID == bird_data.ID_RFID  # noqa: E501
+                                     )\
+                                 .update({
+                                     'Weight': WeightDB,
+                                     'Date': datetime.datetime.now(),
+                                     'Note': current_remark})
+                                s.commit()
+                            if (valid in {
+                                    classState.State.pendingLow,
+                                    classState.State.pendingHigh}):
 
-                                    if valid == classState.State.pendingLow:
-                                        Ink_State = 'LOW WEIGHT'
+                                if valid == classState.State.pendingLow:
+                                    Ink_State = 'LOW WEIGHT'
 
-                                    if valid == classState.State.pendingHigh:
-                                        Ink_State = 'HIGH WEIGHT'
+                                if valid == classState.State.pendingHigh:
+                                    Ink_State = 'HIGH WEIGHT'
 
-                                    Screen.bird_it(
-                                        Ink_Ring, Ink_Position,
-                                        Ink_Last_Weight, Ink_Day_Since,
-                                        Ink_Weight, Ink_State)
-                                    time.sleep(2)
-                                    flagVal = True
-                                    Screen.msg_multi_lines([
-                                        '1 - OK',
-                                        '4 - Cancel'
-                                        ], 'ACTION', 7)
-                                    p = inkey()
-                                    while flagVal:
-                                        if p == 'a':
-                                            flagVal = False
-                                            Ink_State = 'OK'
-                                            Screen.bird_it(
-                                                Ink_Ring, Ink_Position,
-                                                Ink_Last_Weight,
-                                                Ink_Day_Since,
-                                                Ink_Weight, Ink_State)
-                                            time.sleep(2)
-                                            current_remark = remarks()
-                                            s.query(DB.Session)\
-                                             .filter(
-                                                 DB.Session.ID_RFID == persoData.ID_RFID  # noqa: E501
-                                                )\
-                                             .update({
-                                                 'Weight': WeightDB,
-                                                 'Date': datetime.datetime.now(),  # noqa: E501
-                                                 'Note': current_remark})
-                                            s.commit()
-                                        if p == 'd':
-                                            flagVal = False
-                                            Ink_State = 'WEIGHT CANCELLED'
-                                            Screen.bird_it(
-                                                Ink_Ring, Ink_Position,
-                                                Ink_Last_Weight,
-                                                Ink_Day_Since, Ink_Weight,
-                                                Ink_State)
-                                if (valid == classState.State.rejeted):
-                                    logger.debug('9.3')
-                                    Ink_State = 'IMPOSSIBLE WEIGHT'
-                                    Screen.bird_it(
-                                        Ink_Ring, Ink_Position,
-                                        Ink_Last_Weight, Ink_Day_Since,
-                                        Ink_Weight, Ink_State)
-                else:
-                    faa = Image.new('RGB', (296, 128), color='white')
-                    draw1 = ImageDraw.Draw(faa)
-                    font1 = ImageFont.truetype(
-                        '/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf', 30)
-                    draw1.text((00, 00), 'ERROR', fill=100, font=font1)
-                    faa = faa.rotate(270)
-                    faa.save('1.jpg')
-                    image = Image.open('1.jpg')
-                    epd.set_frame_memory(image, 0, 0)
-                    epd.display_frame()
-                    epd.set_frame_memory(image, 0, 0)
-                    epd.display_frame()
-                    return {'action': 'exit_loop',
-                            'message': 'cycle detection'}
+                                Screen.bird_it(
+                                    Ink_Ring, Ink_Position,
+                                    Ink_Last_Weight, Ink_Day_Since,
+                                    Ink_Weight, Ink_State)
+                                time.sleep(2)
+                                flagVal = True
+                                Screen.msg_multi_lines([
+                                    '1 - OK',
+                                    '4 - Cancel'
+                                    ], 'ACTION', 7)
+                                p = inkey()
+                                while flagVal:
+                                    if p == 'a':
+                                        flagVal = False
+                                        Ink_State = 'OK'
+                                        Screen.bird_it(
+                                            Ink_Ring, Ink_Position,
+                                            Ink_Last_Weight,
+                                            Ink_Day_Since,
+                                            Ink_Weight, Ink_State)
+                                        time.sleep(2)
+                                        current_remark = remarks()
+                                        s.query(DB.Session)\
+                                         .filter(
+                                             DB.Session.ID_RFID == bird_data.ID_RFID  # noqa: E501
+                                            )\
+                                         .update({
+                                             'Weight': WeightDB,
+                                             'Date': datetime.datetime.now(),  # noqa: E501
+                                             'Note': current_remark})
+                                        s.commit()
+                                    if p == 'd':
+                                        flagVal = False
+                                        Ink_State = 'WEIGHT CANCELLED'
+                                        Screen.bird_it(
+                                            Ink_Ring, Ink_Position,
+                                            Ink_Last_Weight,
+                                            Ink_Day_Since, Ink_Weight,
+                                            Ink_State)
+                            if (valid == classState.State.rejeted):
+                                logger.debug('9.3')
+                                Ink_State = 'IMPOSSIBLE WEIGHT'
+                                Screen.bird_it(
+                                    Ink_Ring, Ink_Position,
+                                    Ink_Last_Weight, Ink_Day_Since,
+                                    Ink_Weight, Ink_State)
+            else:
+                faa = Image.new('RGB', (296, 128), color='white')
+                draw1 = ImageDraw.Draw(faa)
+                font1 = ImageFont.truetype(
+                    os.path.join(ASSETS, 'DejaVuSans.ttf'), 30)
+                draw1.text((00, 00), 'ERROR', fill=100, font=font1)
+                faa = faa.rotate(270)
+                faa.save('1.jpg')
+                image = Image.open('1.jpg')
+                epd.set_frame_memory(image, 0, 0)
+                epd.display_frame()
+                epd.set_frame_memory(image, 0, 0)
+                epd.display_frame()
+                return {'action': 'exit_loop',
+                        'message': 'cycle detection'}
 
         # Boucle de lecture du scanner
         while flagLec:

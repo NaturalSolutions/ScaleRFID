@@ -59,10 +59,10 @@ def error(error, label=None):
     font_size = getPoliceSize(error)
     # permet de choisir la olice et sa aille
     font = PIL.ImageFont.truetype(
-        '/home/pi/Desktop/ProjetRFID_Rework/DejaVuSans.ttf', 30)
+        '/home/pi/ScaleRFID/assets_Rework/DejaVuSans.ttf', 30)
     # permet de choisir la olice et sa aille
     font_calculated = PIL.ImageFont.truetype(
-        '/home/pi/Desktop/ProjetRFID_Rework/DejaVuSans.ttf', font_size)
+        '/home/pi/ScaleRFID/assets_Rework/DejaVuSans.ttf', font_size)
     if label is not None:
         # permet d'ecrire du texte
         draw.text((00, 00), text=label, fill=100, font=font)
@@ -87,10 +87,10 @@ def msg(str_msg, label=None, icon=None):
     font_size = getPoliceSize(str_msg)
     # permet de choisir la olice et sa aille
     font = PIL.ImageFont.truetype(
-        '/home/pi/Desktop/ProjetRFID_Rework/DejaVuSans.ttf', 30)
+        '/home/pi/ScaleRFID/assets_Rework/DejaVuSans.ttf', 30)
     # permet de choisir la olice et sa aille
     font_calculated = PIL.ImageFont.truetype(
-        '/home/pi/Desktop/ProjetRFID_Rework/DejaVuSans.ttf', font_size)
+        '/home/pi/ScaleRFID/assets_Rework/DejaVuSans.ttf', font_size)
     if label is not None:
         if(icon is not None):
             override_label = icon_details[icon] + label
@@ -120,10 +120,10 @@ def msg_multi_lines(lines, label=None, icon=None):
     # font_size = getPoliceSize(str_msg)
     # permet de choisir la olice et sa aille
     font = PIL.ImageFont.truetype(
-        '/home/pi/Desktop/ProjetRFID_Rework/DejaVuSans.ttf', 30)
+        '/home/pi/ScaleRFID/assets_Rework/DejaVuSans.ttf', 30)
     # permet de choisir la olice et sa aille  # noqa: E501
     # font_calculated = PIL.ImageFont.truetype(
-    #     '/home/pi/Desktop/ProjetRFID_Rework/DejaVuSans.ttf', font_size)
+    #     '/home/pi/ScaleRFID/assets_Rework/DejaVuSans.ttf', font_size)
     if label is not None:
         if(icon is not None):
             override_label = icon_details[icon] + label
@@ -144,7 +144,7 @@ def msg_multi_lines(lines, label=None, icon=None):
         print('boulasse   z    ' + str(font_size))
         # permet de choisir la olice et sa aille
         font_calculated = PIL.ImageFont.truetype(
-            '/home/pi/Desktop/ProjetRFID_Rework/DejaVuSans.ttf', font_size)
+            '/home/pi/ScaleRFID/assets_Rework/DejaVuSans.ttf', font_size)
         # permet d'ecrire du texte
         draw.text((00, offset), text=str_line, fill=100, font=font_calculated)
         offset += offset_cpt
@@ -161,9 +161,9 @@ def bird_it_old(ring, position, weight, state):
     foo = PIL.Image.new('RGB', (296128), color='white')
     draw1 = PIL.ImageDraw.Draw(foo)
     font1 = PIL.ImageFont.truetype(
-        '/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf', 26)
+        '/home/pi/ScaleRFID/assets/DejaVuSans.ttf', 26)
     font2 = PIL.ImageFont.truetype(
-        '/home/pi/Desktop/ProjetRFID/DejaVuSans-Bold.ttf', 20)
+        '/home/pi/ScaleRFID/assets/DejaVuSans-Bold.ttf', 20)
     draw1.text((00, 00), ' ' + ring, fill=0, font=font1)
     draw1.text((00, 25), ' ' + position, fill=0, font=font1)
     draw1.text((00, 50), ' ' + weight + 'g', fill=0, font=font1)
@@ -181,11 +181,11 @@ def bird_it(ring, position, weight, days, new_weight=None, new_state=None):
     foo = PIL.Image.new('RGB', (296, 128), color='white')
     draw1 = PIL.ImageDraw.Draw(foo)
     font1 = PIL.ImageFont.truetype(
-        '/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf', 18)
+        '/home/pi/ScaleRFID/assets/DejaVuSans.ttf', 18)
     font2 = PIL.ImageFont.truetype(
-        '/home/pi/Desktop/ProjetRFID/DejaVuSans-Bold.ttf', 20)
+        '/home/pi/ScaleRFID/assets/DejaVuSans-Bold.ttf', 20)
     font3 = PIL.ImageFont.truetype(
-        '/home/pi/Desktop/ProjetRFID/DejaVuSans-Bold.ttf', 24)
+        '/home/pi/ScaleRFID/assets/DejaVuSans-Bold.ttf', 24)
     draw1.text((00, 00), ring, fill=0, font=font3)
     draw1.text((00, 30), position, fill=0, font=font2)
     if(weight not in {None, ''}):
@@ -200,13 +200,13 @@ def bird_it(ring, position, weight, days, new_weight=None, new_state=None):
     # # font_size = getPoliceSize(weight_line)
     # permet de choisir la olice et sa aille  # noqa: E501
     # font_calculated = PIL.ImageFont.truetype(
-    #     '/home/pi/Desktop/ProjetRFID_Rework/DejaVuSans.ttf', 20)
+    #     '/home/pi/ScaleRFID/assets_Rework/DejaVuSans.ttf', 20)
     # draw1.text((00,50), weight_line, fill = 0, font = font_calculated)
     # days_line = 'Days since last weight : ' + str(days)
     # # font_size = getPoliceSize(days_line)
     # permet de choisir la olice et sa aille  # noqa: E501
     # font_calculated = PIL.ImageFont.truetype(
-    #     '/home/pi/Desktop/ProjetRFID_Rework/DejaVuSans.ttf', 18)
+    #     '/home/pi/ScaleRFID/assets_Rework/DejaVuSans.ttf', 18)
     # draw1.text((00, 75), 'Days since last weight : ' + str(days),
     #            fill = 0, font = font_calculated)
     foo = foo.rotate(270)
@@ -224,7 +224,7 @@ def numberBird(data):
     temp = PIL.Image.new('RGB', (296, 128), color='white')
     draw = PIL.ImageDraw.Draw(temp)
     font = PIL.ImageFont.truetype(
-        '/home/pi/Desktop/ProjetRFID_Rework/DejaVuSans.ttf', 30)
+        '/home/pi/ScaleRFID/assets_Rework/DejaVuSans.ttf', 30)
     draw.text((00, 00), text=data, fill=100, font=font)
     temp = temp.rotate(270)
     temp.save('temp.jpg')
@@ -239,7 +239,7 @@ def positionBird(data):
     temp = PIL.Image.new('RGB', (296, 128), color='white')
     draw = PIL.ImageDraw.Draw(temp)
     font = PIL.ImageFont.truetype(
-        '/home/pi/Desktop/ProjetRFID_Rework/DejaVuSans.ttf', 30)
+        '/home/pi/ScaleRFID/assets_Rework/DejaVuSans.ttf', 30)
     draw.text((00, 25), text=data, fill=100, font=font)
     temp = temp.rotate(270)
     temp.save('temp.jpg')
@@ -254,7 +254,7 @@ def weightBird(data):
     temp = PIL.Image.new('RGB', (296, 128), color='white')
     draw = PIL.ImageDraw.Draw(temp)
     font = PIL.ImageFont.truetype(
-        '/home/pi/Desktop/ProjetRFID_Rework/DejaVuSans.ttf', 30)
+        '/home/pi/ScaleRFID/assets_Rework/DejaVuSans.ttf', 30)
     draw.text((00, 50), text=data, fill=100, font=font)
     temp = temp.rotate(270)
     temp.save('temp.jpg')
@@ -269,7 +269,7 @@ def resultWetghing(data):
     temp = PIL.Image.new('RGB', (296, 128), color='white')
     draw = PIL.ImageDraw.Draw(temp)
     font = PIL.ImageFont.truetype(
-        '/home/pi/Desktop/ProjetRFID_Rework/DejaVuSans.ttf', 30)
+        '/home/pi/ScaleRFID/assets_Rework/DejaVuSans.ttf', 30)
     draw.text((00, 75), text=data, fill=100, font=font)
     temp = temp.rotate(270)
     temp.save('temp.jpg')

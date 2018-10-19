@@ -51,7 +51,7 @@ epd.init(epd.lut_partial_update)
 
 faa = Image.new('RGB', (296,128), color = "white")
 draw1 = ImageDraw.Draw(faa)
-font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",30)
+font1 = ImageFont.truetype("/home/pi/ScaleRFID/assets/DejaVuSans.ttf",30)
 draw1.text((00,00), "STARTING...WAIT", fill = 100, font = font1)
 faa = faa.rotate(270)
 faa.save('1.jpg')
@@ -158,8 +158,8 @@ def recupWeight(Weight):
 def ink(ring, position, weight, state):
       foo = Image.new('RGB', (296,128), color = "white")
       draw1 = ImageDraw.Draw(foo)
-      font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",26)
-      font2 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans-Bold.ttf", 20)
+      font1 = ImageFont.truetype("/home/pi/ScaleRFID/assets/DejaVuSans.ttf",26)
+      font2 = ImageFont.truetype("/home/pi/ScaleRFID/assets/DejaVuSans-Bold.ttf", 20)
       draw1.text((00,00), " " + ring, fill = 0, font = font1)
       draw1.text((00,25), " " + position, fill = 0, font = font1)
       draw1.text((00,50), " " + weight + "g", fill = 0, font = font1)
@@ -183,7 +183,7 @@ dbExists = os.path.isfile(dbPath)
 if dbExists == False:
       faa = Image.new('RGB', (296,128), color = "white")
       draw1 = ImageDraw.Draw(faa)
-      font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",20)
+      font1 = ImageFont.truetype("/home/pi/ScaleRFID/assets/DejaVuSans.ttf",20)
       draw1.text((00,00), "ERROR", fill = 100, font = font1)
       draw1.text((00,30), "Database Not Found", fill = 100, font = font1)
       faa = faa.rotate(270)
@@ -219,7 +219,7 @@ Ink_State = ""
 """if s.query(DB.Log).filter(DB.Session.Date_Session == '1').first().Date.date() != datetime.date.today():
       faa = Image.new('RGB', (296,128), color = "white")
       draw1 = ImageDraw.Draw(faa)
-      font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",20)
+      font1 = ImageFont.truetype("/home/pi/ScaleRFID/assets/DejaVuSans.ttf",20)
       draw1.text((00,00), "ERROR", fill = 100, font = font1)
       draw1.text((00,30), "Database_Outdated", fill = 100, font = font1)
       faa = faa.rotate(270)
@@ -243,7 +243,7 @@ def main():
       while True:
             """faa = Image.new('RGB', (296,128), color = "white")
             draw1 = ImageDraw.Draw(faa)
-            font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",34)
+            font1 = ImageFont.truetype("/home/pi/ScaleRFID/assets/DejaVuSans.ttf",34)
             draw1.text((00,00), "READY", fill = 100, font = font1)
             faa = faa.rotate(270)
             faa.save('1.jpg')
@@ -277,7 +277,7 @@ def main():
                         if str(persoData) == 'None':
                               faa = Image.new('RGB', (296,128), color = "white")
                               draw1 = ImageDraw.Draw(faa)
-                              font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",20)
+                              font1 = ImageFont.truetype("/home/pi/ScaleRFID/assets/DejaVuSans.ttf",20)
                               draw1.text((00,00), "ERROR", fill = 100, font = font1)
                               draw1.text((00,30), "Bird Chip Not In Database", fill = 100, font = font1)
                               faa = faa.rotate(270)
@@ -294,7 +294,7 @@ def main():
                         except AttributeError:
                               faa = Image.new('RGB', (296,128), color = "white")
                               draw1 = ImageDraw.Draw(faa)
-                              font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",20)
+                              font1 = ImageFont.truetype("/home/pi/ScaleRFID/assets/DejaVuSans.ttf",20)
                               draw1.text((00,00), "ERROR", fill = 100, font = font1)
                               draw1.text((00,30), "Bird Chip Not In Database", fill = 100, font = font1)
                               faa = faa.rotate(270)
@@ -311,7 +311,7 @@ def main():
                         except AttributeError:
                               faa = Image.new('RGB', (296,128), color = "white")
                               draw1 = ImageDraw.Draw(faa)
-                              font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",20)
+                              font1 = ImageFont.truetype("/home/pi/ScaleRFID/assets/DejaVuSans.ttf",20)
                               draw1.text((00,00), "ERROR", fill = 100, font = font1)
                               draw1.text((00,30), "Bird Position Not In Database", fill = 100, font = font1)
                               faa = faa.rotate(270)
@@ -328,7 +328,7 @@ def main():
                               if Ink_Weight != 'None':
                                     faa = Image.new('RGB', (296,128), color = "white")
                                     draw1 = ImageDraw.Draw(faa)
-                                    font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",20)
+                                    font1 = ImageFont.truetype("/home/pi/ScaleRFID/assets/DejaVuSans.ttf",20)
                                     draw1.text((00,00), "ERROR", fill = 100, font = font1)
                                     draw1.text((00,30), "Bird Already Weighted", fill = 100, font = font1)
                                     faa = faa.rotate(270)
@@ -344,7 +344,7 @@ def main():
                         except AttributeError:
                               faa = Image.new('RGB', (296,128), color = "white")
                               draw1 = ImageDraw.Draw(faa)
-                              font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",20)
+                              font1 = ImageFont.truetype("/home/pi/ScaleRFID/assets/DejaVuSans.ttf",20)
                               draw1.text((00,00), "ERROR", fill = 100, font = font1)
                               draw1.text((00,30), "Bird Chip Not In Database", fill = 100, font = font1)
                               faa = faa.rotate(270)
@@ -417,7 +417,7 @@ def main():
                         else:
                               faa = Image.new('RGB', (296,128), color = "white")
                               draw1 = ImageDraw.Draw(faa)
-                              font1 = ImageFont.truetype("/home/pi/Desktop/ProjetRFID/DejaVuSans.ttf",30)
+                              font1 = ImageFont.truetype("/home/pi/ScaleRFID/assets/DejaVuSans.ttf",30)
                               draw1.text((00,00), "ERROR", fill = 100, font = font1)
                               faa = faa.rotate(270)
                               faa.save('1.jpg')
