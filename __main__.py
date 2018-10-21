@@ -17,6 +17,7 @@ from .event_dispatcher import Event, EventDispatcher
 
 
 logger = settings.logger
+mp.log_to_stderr(10)
 dispatcher = EventDispatcher()
 hkb4 = hkb_input.HKB4Device(settings.HKB4_PORT)
 killswitch = KillSwitch.KillSwitch(key_code=30, threshold=.500)
@@ -31,9 +32,12 @@ def shutdown(signum=0, frame=None):
             (k, v) for v, k in list(signal.__dict__.items())
             if v.startswith('SIG'))
         logger.critical('Received signal %s', signames[signum])
+    # q.close()
+    # q.join_thread()
     if len(pool) > 0:
         for p in pool:
-            p.terminate()
+            # p.terminate()
+            p.join()
     logger.critical('shutting down pid %s', os.getpid())
     exit(signum)
 
@@ -96,13 +100,12 @@ def handle_any_key_release(event: Event):
     if (event.data.get('type', False)
             and event.data['type'] == 'keyrelease'):
 
-        if event.data['code'] == killswitch.key_code:
+        if (event.data['code'] == killswitch.key_code
+                and (killswitch.activated or killswitch.pending)):
             if killswitch.activated:
                 logger.debug('Activated killswitch')
             elif killswitch.pending:
                 logger.debug('Pending killswitch activation')
-            else:
-                logger.info(' Processing scan_code %s', event.data['code'])
 
         else:
             logger.info(' Processing scan_code %s', event.data['code'])
