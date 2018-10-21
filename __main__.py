@@ -1,5 +1,6 @@
 #!venv/bin/python3
 # sudo ~/ScaleRFID/venv/bin/python3 -m ScaleRFID
+# FIXME: https://github.com/topics/state-machine?l=python
 import os
 import signal
 import time
