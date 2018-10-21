@@ -17,7 +17,7 @@ _consolelog.setLevel(logging.DEBUG)
 logger.addHandler(_consolelog)
 
 
-class inputHKbDevice():
+class HKB4Device():
     # https://pcsensor.com/pcsensor-usb-handle-lkeyboard-6-buttons-laptop-handle-keyboard-hk4.html  # noqa: E501
     def __init__(self, path, fmt='llHHi'):
         self.path = path
@@ -58,7 +58,7 @@ class inputHKbDevice():
 
 if __name__ == '__main__':
 
-    hkb4 = inputHKbDevice('/dev/input/by-id/usb-413d_2107-event-mouse')
+    hkb4 = HKB4Device('/dev/input/by-id/usb-413d_2107-event-mouse')
     # event = hkb4.read()
     # print(event)
 
@@ -66,6 +66,7 @@ if __name__ == '__main__':
     import signal
     import multiprocessing as mp
     # import json
+    from event_dispatcher import Event
     from hkb_events import dispatch, inputEvent
 
     pool = []
@@ -83,7 +84,7 @@ if __name__ == '__main__':
 
     signal.signal(signal.SIGINT, shutdown)
 
-    class killswitch:
+    class KillSwitch:
         _STATES = [False, 'PENDING1', 'PENDING2', 'ACTIVATED']
 
         def __init__(self, key_code=30, threshold=.500):
@@ -91,6 +92,9 @@ if __name__ == '__main__':
             self.key_code = key_code
             self.threshold = threshold
             self._last = datetime.now()
+
+        def activate(cb: callable, *args, **kwargs):
+            cb(*args, **kwargs)
 
         @property
         def activated(self):
@@ -103,37 +107,41 @@ if __name__ == '__main__':
         def increment(self):
             self.state = self._STATES[self._STATES.index(self.state) + 1]
 
-    switch = killswitch()
+    killswitch = KillSwitch()
 
     @inputEvent
-    def process_input_event(event):
-        if (event.data['type'] == 'keyrelease'
-                and event.data['code'] == switch.key_code):
-            if event.data['ts'] - switch._last.timestamp() < switch.threshold:
-                switch.increment()
+    def killswitch_event(event: Event):
+        if (event.data.get('type', False)
+                and event.data['type'] == 'keyrelease'
+                and event.data['code'] == killswitch.key_code):
+
+            if (event.data['ts'] - killswitch._last.timestamp() < killswitch.threshold):  # noqa: E501
+                killswitch.increment()
                 logger.debug(
                     ' delta: %s key_code: %s state: %s',
-                    event.data['ts'] - switch._last.timestamp(),
+                    event.data['ts'] - killswitch._last.timestamp(),
                     event.data['code'],
-                    switch.state)
-                if switch.activated:
+                    killswitch.state)
+                if killswitch.activated:
                     logger.debug('Killswitch activated')
                     shutdown(signum=0)
             else:
-                switch.state = switch._STATES[0]
-            switch._last = datetime.now()
+                killswitch.state = killswitch._STATES[0]
+            killswitch._last = datetime.now()
 
     @inputEvent
-    def any_key_release(event):
-        if (event.data['type'] == 'keyrelease'):
-            if event.data['code'] == switch.key_code:
-                if switch.activated:
+    def any_key_release(event: Event):
+        if (event.data.get('type', False)
+                and event.data['type'] == 'keyrelease'):
+            if event.data['code'] == killswitch.key_code:
+                if killswitch.activated:
                     logger.debug('Activated killswitch')
-                elif switch.pending:
+                elif killswitch.pending:
                     logger.debug('Pending killswitch activation')
                 else:
                     logger.info(' Processing scan_code %s', event.data['code'])
 
+    # main
     p = mp.Process(
         name='hkb4_log_producer_service',
         target=hkb4.read, args=(True, q))
@@ -144,7 +152,7 @@ if __name__ == '__main__':
         print('Started {}'.format(p.name))
 
         # def consume():
-        while not switch.activated:
+        while not killswitch.activated:
                 # print('get q cont %s', hkb4.continuously)
             if q.qsize() > 0:
                 event = q.get(timeout=1)

@@ -36,6 +36,9 @@ class EventDispatcher(object):
         if event.name in self.events.keys():
             listeners = self.events[event.name]
             for listener in listeners:
+                # if len(listener.__qualname__.split('.')) > 1:
+                #     listener(self, event)
+                # else:
                 listener(event)
 
     def __del__(self):
