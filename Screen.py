@@ -33,6 +33,42 @@ def reset():
     epd.reset()
 
 
+def hard_reset():
+    epd.clear_frame_memory(0xFF)
+    epd.display_frame()
+    epd.clear_frame_memory(0xFF)
+    epd.display_frame()
+
+
+def demarrage_du_systeme():
+    faa = Image.new('RGB', (296, 128), color='white')
+    draw1 = ImageDraw.Draw(faa)
+    font1 = ImageFont.truetype(os.path.join(ASSETS, 'DejaVuSans.ttf'), 30)
+    draw1.text((00, 00), 'STARTING...WAIT', fill=100, font=font1)
+    faa = faa.rotate(270)
+    faa.save('1.jpg')
+    image = Image.open('1.jpg')
+    epd.set_frame_memory(image, 0, 0)
+    epd.display_frame()
+    epd.set_frame_memory(image, 0, 0)
+    epd.display_frame()
+
+
+def result_not_new():
+    faa = Image.new('RGB', (296, 128), color='white')
+    draw1 = ImageDraw.Draw(faa)
+    font1 = ImageFont.truetype(
+        os.path.join(ASSETS, 'DejaVuSans.ttf'), 30)
+    draw1.text((00, 00), 'ERROR', fill=100, font=font1)
+    faa = faa.rotate(270)
+    faa.save('1.jpg')
+    image = Image.open('1.jpg')
+    epd.set_frame_memory(image, 0, 0)
+    epd.display_frame()
+    epd.set_frame_memory(image, 0, 0)
+    epd.display_frame()
+
+
 def blank():
     # cree une image de 296*128 avec des couleurs RGB
     temp = Image.new('RGB', (296, 128), color='white')

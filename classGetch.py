@@ -19,19 +19,34 @@ class _Getch:
 
 class _GetchUnix:
     def __call__(self):
-        # old_settings = termios.tcgetattr(sys.stdin)
-        # new_settings = termios.tcgetattr(sys.stdin)
-        # # lflags
-        # new_settings[3] = new_settings[3] & ~(termios.ECHO | termios.ICANON)
-        # new_settings[6][termios.VMIN] = 0   # cc
-        # new_settings[6][termios.VTIME] = 0  # cc
-        # termios.tcsetattr(sys.stdin, termios.TCSADRAIN, new_settings)
-        # ch = os.read(sys.stdin.fileno(), 1)
         fd = sys.stdin.fileno()
         old_settings = termios.tcgetattr(fd)
         try:
             tty.setraw(sys.stdin.fileno())
-            ch = sys.stdin.read(1)
+            ch = sys.stdin.read(1)[0]
         finally:
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
         return ch
+
+
+if __name__ == '__main__':
+    # readchar = _GetchUnix()
+    #
+    # c1 = 0
+    # while c1 != chr(27):  # ESC
+    #     c1 = readchar()
+    #     print(len(c1))
+    #     print(ord(c1))
+    #     # if ord(c1) != 0x1b:
+    #     print(c1)
+    #     if c1 == 'd':
+    #         break
+    #     print(r"You pressed {}".format(c1))
+    #     # c2 = readchar()
+    #     # if ord(c2) != 0x5b:
+    #     #     print("You pressed", c1 + c2)
+    #     # c3 = readchar()
+    #     # if ord(c3) != 0x33:
+    #     #     print("You pressed", c1 + c2 + c3)
+    #     # c4 = readchar()
+    #     # print("You pressed", c1 + c2 + c3 + c4)

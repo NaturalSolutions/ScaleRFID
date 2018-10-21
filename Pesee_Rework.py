@@ -1,57 +1,28 @@
 #!/usr/bin/env python3
 # coding: utf-8
 
-import os
-# 'Import'
-# try:
-#     import thread
-# except ImportError:
-#     import _thread as thread
+import sys
+import re
+import time
+import datetime
+
 import serial
 # import sqlite3
 import DB
-import re
-import datetime
-import time
 # import RPi.GPIO as GPIO
 import Export
 import Screen
-import sys
-# from sqlalchemy.orm import sessionmaker
-# from sqlalchemy import create_engine
-# from sqlalchemy import update
-import epd2in9
-# import PIL
-from PIL import Image, ImageDraw, ImageFont  # , ImageOps
-# import glob
-
-from settings import ASSETS, logger
+from settings import logger
 import classState
 import classGetch
 
 # 'Intialisation des ecrans'
-
-epd = epd2in9.EPD()
-epd.init(epd.lut_partial_update)
 Screen.reset()
 
 ##############################################
 
 # 'Demarrage du systeme'
-
-
-faa = Image.new('RGB', (296, 128), color='white')
-draw1 = ImageDraw.Draw(faa)
-font1 = ImageFont.truetype(os.path.join(ASSETS, 'DejaVuSans.ttf'), 30)
-draw1.text((00, 00), 'STARTING...WAIT', fill=100, font=font1)
-faa = faa.rotate(270)
-faa.save('1.jpg')
-image = Image.open('1.jpg')
-epd.set_frame_memory(image, 0, 0)
-epd.display_frame()
-epd.set_frame_memory(image, 0, 0)
-epd.display_frame()
-
+Screen.demarrage_du_systeme()
 
 # 'Variables'
 
@@ -77,7 +48,6 @@ Weight = ''
 
 
 # dbExists = os.path.isfile(dbPath)
-
 # if dbExists == False:
 #       Screen.msg('Database not found', 'ERROR', True)
 #
@@ -220,7 +190,7 @@ def remarks():
     p = inkey()
 
     while flagVal:
-        if p == 'a':
+        if p in {'a', 'q'}:
             flagVal = False
             return ''
         elif p == 'b':
@@ -235,26 +205,34 @@ def remarks():
 
 
 # Test des affichages a suppr 0 interets
-def screenmethis():
-    logger.debug('reset')
-    epd.clear_frame_memory(0xFF)
-    epd.display_frame()
-    time.sleep(2)
-    logger.debug('endreset')
-    logger.debug('grande taille : ' + str(len('Bird chip not in database')))
-    Screen.msg('Bird chip not in database', 'ERROR', True)
-    time.sleep(2)
-    Screen.msg('Bird chip not in database', 'ERROR', True)
-    time.sleep(2)
-    logger.debug(
-        'grande taille : ' + str(len('Bird position not in database')))
-    Screen.msg('Bird position not in database', 'ERROR', True)
-    time.sleep(2)
-    Screen.msg('Bird already weighted', 'ERROR', True)
-    time.sleep(2)
-    Screen.msg('Bird chip not in database', 'ERROR', True)
-    time.sleep(2)
-    exit()
+# def screenmethis():
+#     logger.debug('reset')
+#     epd.clear_frame_memory(0xFF)
+#     epd.display_frame()
+#     time.sleep(2)
+#     logger.debug('endreset')
+#     logger.debug('grande taille : ' + str(len('Bird chip not in database')))
+#     Screen.msg('Bird chip not in database', 'ERROR', True)
+#     time.sleep(2)
+#     Screen.msg('Bird chip not in database', 'ERROR', True)
+#     time.sleep(2)
+#     logger.debug(
+#         'grande taille : ' + str(len('Bird position not in database')))
+#     Screen.msg('Bird position not in database', 'ERROR', True)
+#     time.sleep(2)
+#     Screen.msg('Bird already weighted', 'ERROR', True)
+#     time.sleep(2)
+#     Screen.msg('Bird chip not in database', 'ERROR', True)
+#     time.sleep(2)
+#     exit()
+
+
+def printkill():
+    Screen.reset()
+    Screen.msg_multi_lines([
+        '1 - shutdown the SCALE',
+        '2 - Cancel             '
+        ], 'WARNING', 1)
 
 
 # screenmethis()
@@ -274,15 +252,8 @@ def screen_my_bustard():
 # screen_my_bustard()
 
 
-def hard_reset():
-    epd.clear_frame_memory(0xFF)
-    epd.display_frame()
-    epd.clear_frame_memory(0xFF)
-    epd.display_frame()
-
-
 logger.debug('hard')
-hard_reset()
+Screen.hard_reset()
 logger.debug('endhard')
 # screen_my_bustard()
 # #Fin test multi ligne
@@ -387,11 +358,11 @@ def main():
                 # Boucle de lecture de la balance
                 while flagBal:
                     time.sleep(1)
-                    try:
-                        #   Weight = raw_input()
-                        Weight = Ink_Last_Weight
-                    except EOFError:
-                        pass
+                    # try:
+                    #     #   Weight = raw_input()
+                    Weight = Ink_Last_Weight
+                    # except EOFError:
+                    #     pass
                     if Weight:
                         flagBal = False
                         strWeight = str(Weight)
@@ -401,6 +372,7 @@ def main():
                         intWeight = int(
                             re.findall(r'\d+', strWeight)[0])
                         strWeight = str(intWeight)
+
                         # Si on detecte un poids
                         if len(strWeight) >= 0:
                             WeightDB = recupWeight(strWeight)
@@ -445,7 +417,7 @@ def main():
                                     ], 'ACTION', 7)
                                 p = inkey()
                                 while flagVal:
-                                    if p == 'a':
+                                    if p in {'a', 'q'}:
                                         flagVal = False
                                         Ink_State = 'OK'
                                         Screen.bird_it(
@@ -480,20 +452,9 @@ def main():
                                     Ink_Last_Weight, Ink_Day_Since,
                                     Ink_Weight, Ink_State)
             else:
-                faa = Image.new('RGB', (296, 128), color='white')
-                draw1 = ImageDraw.Draw(faa)
-                font1 = ImageFont.truetype(
-                    os.path.join(ASSETS, 'DejaVuSans.ttf'), 30)
-                draw1.text((00, 00), 'ERROR', fill=100, font=font1)
-                faa = faa.rotate(270)
-                faa.save('1.jpg')
-                image = Image.open('1.jpg')
-                epd.set_frame_memory(image, 0, 0)
-                epd.display_frame()
-                epd.set_frame_memory(image, 0, 0)
-                epd.display_frame()
+                Screen.result_not_new()
                 return {'action': 'exit_loop',
-                        'message': 'cycle detection'}
+                        'message': 'result not new'}
 
         # Boucle de lecture du scanner
         while flagLec:
