@@ -23,9 +23,9 @@ def control(weight, data):
         return "ImpMin"
     elif weight > data.Weigh_tMax_Imp:
         return "ImpMax"
-    elif weight < data.Weight_Min_Path and weight > data.Weigh_tMin_Imp:
+    elif data.Weigh_tMin_Imp < weight < data.Weight_Min_Path:
         return "PathMin"
-    elif weight > data.Weight_Max_Path and weight < data.Weight_Max_Imp:
+    elif data.Weight_Max_Imp > weight > data.Weight_Max_Path:
         return "PathMax"
     else:
         return "Normal"

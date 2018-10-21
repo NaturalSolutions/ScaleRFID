@@ -55,6 +55,10 @@ def shutdownEvent(func):
     dispatcher.add_listener('shutdownEvent', func)
 
 
+def rfidEvent(func):
+    dispatcher.add_listener('rfidEvent', func)
+
+
 @shutdownEvent
 def handle_shutdown(event: Event):
     logger.critical(
@@ -106,25 +110,27 @@ def handle_any_key_release(event: Event):
 
 # main
 try:
-    p = mp.Process(
-        name='hkb4_event_producer',
+    KeyboardHandleService = mp.Process(
+        name='KeyboardHandleService',
         target=hkb4.read,
         args=(True, q))
-    p.start()
-    if p:
-        pool.append(p)
-        print('Started {}'.format(p.name))
+    KeyboardHandleService.start()
+    if KeyboardHandleService:
+        pool.append(KeyboardHandleService)
+        print('Started KeyboardHandle service')
     else:
-        logger.critical('Could not start HandleKeyBoard service. Exiting.')
+        logger.critical('Could not start KeyboardHandle service. Exiting.')
         shutdown(127)
 
     # main loop
     while not killswitch.activated:
+
         if q.qsize() > 0:
             event = q.get(timeout=1)
             dispatch(json.loads(event))
 
         time.sleep(.01)
+
 except (queue.Full, Exception) as e:
     logger.critical(e)
     logger.debug(q)

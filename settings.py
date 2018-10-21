@@ -5,7 +5,9 @@ import logging.handlers
 import os
 
 
-LOG_DIR = os.path.join(os.path.realpath(os.path.basename(__file__)), 'log')
+LOG_DIR = os.path.join(
+    os.path.dirname(os.path.realpath(os.path.basename(__file__))),
+    'log')
 os.makedirs(LOG_DIR, exist_ok=True)
 LOG_FILE = os.path.join(LOG_DIR, 'pesee.log')
 

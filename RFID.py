@@ -1,6 +1,6 @@
 #!venv/bin/python3
 
-import serial
+# import serial  # mocking
 from settings import logger, RFID_READER_PORT
 
 
@@ -27,19 +27,21 @@ class RFIDTag():
 
     def read(self):
         code = self.reader.read(100)
-        code = code.split(self.tag_match_start)[1]
-        code = code.split(self.tag_match_end)[0]
+        code = code.split(RFIDTag.id_match_start)[1]
+        code = code.split(RFIDTag.id_match_end)[0]
         logger.debug('RFIDReader: read tag id: %s', code)
-        validated = self.validate(code)
+        validated = RFIDTag.validate(code)
         if validated:
             return code
-        # otherwise a TagError shoul be raised during validation
+        # otherwise a TagError should be raised during validation
 
+    @staticmethod
     def validate(code):
         if len(code) == 16:
             return True
         else:
-            raise TagError('RFIDTag id length: expected 16 got %s', len(code))
+            raise TagError(
+                'RFIDTag id length: expected 16 got {}'.format(len(code)))
 
 
 class RFIDReader():
@@ -53,12 +55,30 @@ class RFIDReader():
         self.timeout = timeout
 
     def read(self, nbytes=None):
-        try:
-            with serial.Serial(
-                    self.port, self.speed, self, self.timeout) as reader:
-                if nbytes and isinstance(nbytes, int):
-                    return reader.read(nbytes)
-                else:
-                    return reader.read()
-        except serial.SerialException:
-            raise DisconnectedError
+        # try:
+        #     with serial.Serial(
+        #             self.port, self.speed, self, self.timeout) as reader:
+        #         if nbytes and isinstance(nbytes, int):
+        #             return reader.read(nbytes)
+        #         else:
+        #             return reader.read()
+        # except serial.SerialException:
+        #     raise DisconnectedError
+        # mock
+        from uuid import uuid4
+
+        uid = uuid4()
+        return RFIDTag.id_match_start + str(uid)[0:16] + RFIDTag.id_match_end
+
+
+if __name__ == '__main__':
+    from time import sleep
+    from random import randint
+
+    reader = RFIDReader
+    while True:
+        tag = RFIDTag(reader)
+        tag.read()
+        r = randint(0, 8)
+        logger.debug('sleeping %s s', r)
+        sleep(r)
