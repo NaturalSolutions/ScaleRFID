@@ -37,8 +37,11 @@ def shutdown(signum=0, frame=None):
     # q.join_thread()
     if len(pool) > 0:
         for p in pool:
-            # p.terminate()
-            p.join()
+            p.terminate()
+            time.sleep(0.1)
+            if not p.is_alive():
+                p.join(timeout=1.0)
+    q.close()
     logger.critical('shutting down pid %s', os.getpid())
     exit(signum)
 
@@ -125,6 +128,18 @@ try:
     else:
         logger.critical('Could not start KeyboardHandle service. Exiting.')
         shutdown(127)
+    # class KeyboardHandleService(multiprocessing.Process):
+    #
+    # def __init__(self, hkb_input, q):
+    #     multiprocessing.Process.__init__(self)
+    #     self.exit = multiprocessing.Event()
+    #
+    # def run(self):
+    #     while not self.exit.is_set():
+    #         hkb_input.read(False, q)
+    #
+    # def disconnect(self):
+    #     self.exit.set()
 
     # main loop
     while not killswitch.activated:

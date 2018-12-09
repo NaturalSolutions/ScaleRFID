@@ -13,7 +13,7 @@ class DisconnectedError(Error):
         self.message = message
 
 
-class TagError(Error):
+class TagReadError(Error):
     def __init__(self, message=None):
         self.message = message
 
@@ -33,14 +33,14 @@ class RFIDTag():
         validated = RFIDTag.validate(code)
         if validated:
             return code
-        # otherwise a TagError should be raised during validation
+        # otherwise a TagReadError should be raised during validation
 
     @staticmethod
     def validate(code):
         if len(code) == 16:
             return True
         else:
-            raise TagError(
+            raise TagReadError(
                 'RFIDTag id length: expected 16 got {}'.format(len(code)))
 
 

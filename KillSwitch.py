@@ -19,7 +19,6 @@ class KillSwitch:
 
     @property
     def pending(self):
-        # return self.state.startswith('PENDING')
         return 0 < self._STATES.index(self.state) < len(self._STATES) - 1
 
     def increment(self):
