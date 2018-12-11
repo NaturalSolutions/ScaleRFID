@@ -5,7 +5,7 @@ __pycache__
 node_modules
 *.swp
 .tags*
-venv*
+venv/
 tmp_*
 *.sublime-project
 *.sublime-workspace
