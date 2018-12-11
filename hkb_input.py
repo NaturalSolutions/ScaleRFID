@@ -67,7 +67,6 @@ if __name__ == '__main__':
     import multiprocessing as mp
     # import json
     from event_dispatcher import Event
-    from hkb_events import dispatch, inputEvent
 
     pool = []
     q = mp.Queue(maxsize=4)

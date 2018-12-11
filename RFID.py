@@ -1,6 +1,6 @@
 #!venv/bin/python3
 
-# import serial  # mocking
+import serial  # mocking
 from settings import logger, RFID_READER_PORT
 
 
@@ -54,21 +54,21 @@ class RFIDReader():
         self.speed = speed
         self.timeout = timeout
 
-    def read(self, nbytes=None):
-        # try:
-        #     with serial.Serial(
-        #             self.port, self.speed, self, self.timeout) as reader:
-        #         if nbytes and isinstance(nbytes, int):
-        #             return reader.read(nbytes)
-        #         else:
-        #             return reader.read()
-        # except serial.SerialException:
-        #     raise DisconnectedError
+    def read(self, nbytes=15):
+        try:
+            with serial.Serial(
+                    self.port, self.speed, self, self.timeout) as reader:
+                if nbytes and isinstance(nbytes, int):
+                    return reader.read(nbytes)
+                else:
+                    return reader.read()
+        except serial.SerialException:
+            raise DisconnectedError
         # mock
-        from uuid import uuid4
-
-        uid = uuid4()
-        return RFIDTag.id_match_start + str(uid)[0:16] + RFIDTag.id_match_end
+        # from uuid import uuid4
+        #
+        # uid = uuid4()
+        # return RFIDTag.id_match_start + str(uid)[0:16] + RFIDTag.id_match_end
 
 
 if __name__ == '__main__':
@@ -79,6 +79,6 @@ if __name__ == '__main__':
     while True:
         tag = RFIDTag(reader)
         tag.read()
-        r = randint(0, 8)
+        r = randint(0, 8)   # noqa: S311
         logger.debug('sleeping %s s', r)
         sleep(r)
