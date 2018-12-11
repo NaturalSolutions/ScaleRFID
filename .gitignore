@@ -17,3 +17,7 @@ tmp_*
 .ipynb_checkpoints
 .flake8
 .pylintrc
+docs/Balance\ RFID\ -\ Mode\ d\'emploi.pdf
+docs/Balance\ RFID\ -\ Montage.pdf
+docs/RFID\ -\ Logigramme.pdf
+docs/fsm_strategy_example.py
