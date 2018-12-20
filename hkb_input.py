@@ -6,8 +6,8 @@ from datetime import datetime, timedelta
 import json
 import logging
 
-assert os.geteuid() == 0, '''You must be root to read from the keyboard device interface.'''  # noqa: E501
-assert datetime.resolution <= timedelta(microseconds=1)
+assert os.geteuid() == 0, '''You must be root to read from the keyboard device interface.'''  # noqa: E501,S101
+assert datetime.resolution <= timedelta(microseconds=1)  # noqa: S101
 µs = 1000000
 
 logger = logging.getLogger(__name__)
@@ -45,8 +45,8 @@ class HKB4Device():
         return event
 
     def _extract_event(self, data):
-        sec, usec, type, code, press = struct.unpack(self.format, data)
-        if type == 1:
+        sec, usec, type_, code, press = struct.unpack(self.format, data)
+        if type_ == 1:
             return json.dumps({
                 'inputEvent': {
                     'type': 'keypress' if press > 0 else 'keyrelease',
