@@ -10,11 +10,7 @@ assert os.geteuid() == 0, '''You must be root to read from the keyboard device i
 assert datetime.resolution <= timedelta(microseconds=1)  # noqa: S101
 µs = 1000000
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-_consolelog = logging.StreamHandler()
-_consolelog.setLevel(logging.DEBUG)
-logger.addHandler(_consolelog)
+logger = logging.getLogger()
 
 
 class HKB4Device():
@@ -57,6 +53,11 @@ class HKB4Device():
 
 
 if __name__ == '__main__':
+    # noqa: C901
+    logger.setLevel(logging.DEBUG)
+    _consolelog = logging.StreamHandler()
+    _consolelog.setLevel(logging.DEBUG)
+    logger.addHandler(_consolelog)
 
     hkb4 = HKB4Device('/dev/input/by-id/usb-413d_2107-event-mouse')
     # event = hkb4.read()
@@ -66,10 +67,11 @@ if __name__ == '__main__':
     import signal
     import multiprocessing as mp
     # import json
-    from event_dispatcher import Event
+    from event_dispatcher import Event, EventDispatcher
 
     pool = []
     q = mp.Queue(maxsize=4)
+    dispatcher = EventDispatcher()
 
     def shutdown(signum=0, frame=None):
         if signum > 0:
@@ -82,6 +84,14 @@ if __name__ == '__main__':
         exit
 
     signal.signal(signal.SIGINT, shutdown)
+
+    def dispatch(event):
+        _type = list(event.keys())[0]
+        interfaced = Event(_type, event[_type])
+        dispatcher.dispatch_event(interfaced)
+
+    def inputEvent(fn):
+        dispatcher.add_listener('inputEvent', fn)
 
     class KillSwitch:
         _STATES = [False, 'PENDING1', 'PENDING2', 'ACTIVATED']
