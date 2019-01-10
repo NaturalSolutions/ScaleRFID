@@ -74,7 +74,8 @@ def testFiles(DB_PATH):
         sys.exit()
     strdate = datetime.datetime.now().strftime('%Y%m%d')
     list_of_files = glob.glob(
-        os.path.abspath(os.path.join(DB_PATH, 'Prep_Weighing_*_' + strdate + '*.db')))
+        os.path.abspath(os.path.join(
+            DB_PATH, strdate.join(['Prep_Weighing_*_', '*.db']))))
     if len(list_of_files) == 0:
         Screen.msg('DATABASE OUTDATED', 'ERROR', True)
         sys.exit()
@@ -90,7 +91,8 @@ def get_export_file_name(str_file_name):
 
 def initDB(dbFile, DB_PATH):
     # Connexion de la base de donnees
-    engine = create_engine('sqlite:///' + os.path.abspath(os.path.join(DB_PATH, dbFile)))
+    engine = create_engine(
+        'sqlite:///' + os.path.abspath(os.path.join(DB_PATH, dbFile)))
     session = sessionmaker(bind=engine)
     Base.metadata.create_all(engine)
     return session()
