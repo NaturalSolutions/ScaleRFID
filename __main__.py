@@ -18,14 +18,16 @@ from . import (
     DB
 )
 from .event_dispatcher import Event, EventDispatcher
-from .RFID import RFIDReader  # , RFIDTag
+from .RFID import RFIDReader
 from .system import System
 
 logger = settings.logger
 mp.log_to_stderr(10)
 dispatcher = EventDispatcher()
 hkb4 = hkb_input.HKB4Device(settings.HKB4_PORT)
-killswitch = KillSwitch.KillSwitch(key_code=30, threshold=.500)
+killswitch = KillSwitch.KillSwitch(
+    key_code=settings.KILLSWITCH_KEYCODE,
+    threshold=settings.KILLSWITCH_THRESHOLD)
 reader = RFIDReader(settings.RFID_READER_PORT)
 DB.initDB(
     ''.join(['Prep_Weighing_test_', datetime.now().strftime('%Y%m%d'), '.db']),
@@ -64,16 +66,16 @@ def dispatch(event):
     dispatcher.dispatch_event(interfaced)
 
 
-def inputEvent(func):
-    dispatcher.add_listener('inputEvent', func)
+def inputEvent(fn):
+    dispatcher.add_listener('inputEvent', fn)
 
 
-def shutdownEvent(func):
-    dispatcher.add_listener('shutdownEvent', func)
+def shutdownEvent(fn):
+    dispatcher.add_listener('shutdownEvent', fn)
 
 
-def rfidEvent(func):
-    dispatcher.add_listener('rfidEvent', func)
+def rfidEvent(fn):
+    dispatcher.add_listener('rfidEvent', fn)
 
 
 @shutdownEvent
@@ -150,71 +152,11 @@ try:
     # def disconnect(self):
     #     self.exit.set()
 
-    states = [
-        'waiting',
-        'running',
-        {
-            'name': 'tagreading',
-            'initial': 'init',
-            'children': ['init', 'read', 'disconnected', 'validated']
-        }, {
-            'name': 'prompting',
-            'initial': 'init',
-            'children': ['init', 'read', 'resolved']
-        }, {
-            'name': 'querying',
-            'initial': 'init',
-            'children': ['init', 'read', 'known', 'unknown']
-        }, {
-            'name': 'weighing',
-            'initial': 'init',
-            'children': ['init', 'read', 'rejected', 'validated']
-        }, {
-            'name': 'updating',
-            'initial': 'init',
-            'children': ['init', 'read', 'failed', 'committed']
-        }
-    ]
-
-    transitions = [
-        {'trigger': 'run', 'source': 'waiting', 'dest': 'running', 'after': 'collect_tag'},  # noqa: E501
-        ['wait', ['running', 'prompting_resolved'], 'waiting'],
-        ['init', ['tagreading'], 'tagreading_init'],
-        ['init', ['querying', ], 'querying_init'],
-        ['init', ['weighing', 'prompt_resolved'], 'weighing_init'],
-        ['init', ['updating'], 'updating_init'],
-        ['init', ['prompting', ], 'prompting_init'],
-        # check database update, create .CSV
-        {'trigger': 'collect_tag', 'source': 'running', 'dest': 'tagreading', 'after': 'read_tag'},  # noqa: E501
-        {'trigger': 'read_tag', 'source': 'tagreading_init', 'dest': 'tagreading_read', 'before': 'reader_read', 'after': 'validate_tag'},  # noqa: E501
-        {'trigger': 'validate_tag', 'source': 'tagreading_read', 'dest': 'tagreading_disconnected', 'after': 'acknowledge'},  # noqa: E501
-        {'trigger': 'validate_tag', 'source': 'tagreading_read', 'dest': 'tagreading_init', 'conditions': 'invalid_tag'},  # noqa: E501
-        {'trigger': 'validate_tag', 'source': 'tagreading_read', 'dest': 'tagreading_validated', 'conditions': 'valid_tag', 'unless': 'reader_disconnected', 'after': 'collect_query'},  # noqa: E501
-        {'trigger': 'collect_query', 'source': 'tagreading_validated', 'dest': 'querying', 'after': 'read_query'},  # noqa: E501
-        {'trigger': 'read_query', 'source': 'querying_init', 'dest': 'querying_read', 'before': 'query_read', 'after': 'validate_query'},  # noqa: E501
-        {'trigger': 'validate_query', 'source': 'querying_read', 'dest': 'querying_unknown', 'after': 'acknowledge'},  # unregistered specimen or unknown specimen position  # noqa: E501
-        {'trigger': 'validate_query', 'source': 'querying_read', 'dest': 'querying_known', 'after': 'collect_weighing'},  # registered specimen and known specimen position  # noqa: E501
-        # ['validate_query', 'querying_read', 'querying_init'],  # some db related error  # noqa: E501
-        {'trigger': 'collect_weighing', 'source': 'querying_known', 'dest': 'weighing'},  # valid chip and known specimen and known position and not yet weighed today  # noqa: E501
-        {'trigger': 'read_weight', 'source': 'weighing_init', 'dest': 'weighing_read', 'before': 'weight_read', 'after': 'validate_weight'},  # noqa: E501
-        ['collect', 'weighing_validated', 'updating'],
-        ['read', 'updating_init', 'updating_read'],
-        ['read', 'prompting_init', 'prompting_read'],
-        ['validate', 'weighing_read', 'weighing_validated'],  # normal specimen weight  # noqa: E501
-        {'trigger': 'validate', 'source': 'weighing_read', 'dest': 'weighing_rejected', 'after': 'acknowledge'},  # inconsistent or pathological weight  # noqa: E501
-        ['validate', 'weighing_read', 'weighing_init'],  # disconnected rfidreader  # noqa: E501
-        ['validate', 'updating_read', 'updating_committed'],  # database transaction committed  # noqa: E501
-        {'trigger': 'validate', 'source': 'updating_read', 'dest': 'updating_failed', 'after': 'acknowledge'},  # db record update error  # noqa: E501
-        ['validate', 'updating_read', 'updating_init'],
-        ['validate', 'prompting_read', 'prompting_resolved'],  # confirmed pathological weight or reconnected rdfidreader or acknowledged (outdated db or specimen unknown position or unregistered specimen or specimen invalid rf chip id)  # noqa: E501
-        ['acknowledge', ['tagreading_disconnected', 'querying_unknown', 'weighing_rejected', 'updating_failed', 'updating_committed'], 'prompting'],  # noqa: E501
-        # collect operator's comments
-    ]
     Machine = MachineFactory.get_predefined(graph=False, nested=True)
     machine = Machine(
         model=system,
-        states=states,
-        transitions=transitions,
+        states=settings.STATES,
+        transitions=settings.TRANSITIONS,
         initial='waiting',
         # show_auto_transitions=False,
         # title="Master",
