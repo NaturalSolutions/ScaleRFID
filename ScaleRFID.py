@@ -58,9 +58,9 @@ class RFIDReader():
 
     def read(self, nbytes=15):
         if self._disconnected_error:
-            logger.critical('RFID_READER_DISCONNECTED_ERROR')
+            logger.error('RFID_READER_DISCONNECTED_ERROR')
         if self._misconfigured_error:
-            logger.critical('RFID_READER_MISCONFIGURED_ERROR')
+            logger.error('RFID_READER_MISCONFIGURED_ERROR')
 
         try:
             # with serial.Serial(
@@ -70,20 +70,18 @@ class RFIDReader():
             #     else:
             #         return reader.read()
             # Mock
-            # self._disconnected_error = bool(random.uniform(0, 1) > 0.98)
-            #from uuid import uuid4
-
-            #uid = uuid4()
-            #return (RFIDTag.id_match_start + str(uid)[0:16] + RFIDTag.id_match_end 
             return (RFIDTag.id_match_start + '1234567890ABCDEF' + RFIDTag.id_match_end 
                     if not self._disconnected_error and not self._misconfigured_error else None)
 
         except serial.SerialException:
             # raise DisconnectedError
             self._disconnected_error = True
+            logger.error('RFID_READER_DISCONNECTED_ERROR')
+
         except ValueError as e:
             # raise MisconfiguredError
             self._misconfigured_error = True
+            logger.error('RFID_READER_MISCONFIGURED_ERROR')
         
         
 
@@ -153,7 +151,7 @@ class System:
         try:
             session = dbinfos['session']      
             current_specimen = session.query(DB.Session)                                      .filter(DB.Session.ID_RFID == current_tag.id)                                      .first()
-            logger.info('%s', specimen)
+            logger.info('%s', current_specimen)
 
             if current_specimen is None or current_specimen.ID_Reneco is None:
                 logger.warning('Bird Chip Not In Database')
@@ -199,9 +197,9 @@ if imports not in sys.path:
 from datetime import datetime
 import DB
 # import Export
-import settings
-DB.initDB(''.join(['Prep_Weighing_test_', datetime.now().strftime('%Y%m%d'), '.db']), settings)
-dbinfos = DB.testSession(settings)
+from settings import DB_PATH
+DB.initDB(''.join(['Prep_Weighing_test_', datetime.now().strftime('%Y%m%d'), '.db']), DB_PATH)
+dbinfos = DB.testSession(DB_PATH)
 
 system = System(reader, dbinfos['session'])
 current_tag = None
@@ -243,7 +241,7 @@ transitions = [
     # check database update, create .CSV
     ['collect_tag', 'running', 'tagreading'],
     ['collect_query', 'tagreading_validated', 'querying'],
-    ['collect', 'querying_known', 'weighing'],  # valid chip and known specimen and known position and not already weighed today
+    ['collect', 'querying_known', 'weighing'],  # valid chip and known specimen and known position and not yet weighed today
     ['collect', 'weighing_validated', 'updating'],
     ['init_tag', ['tagreading'], 'tagreading_init'],
     ['init', ['querying', ], 'querying_init'],

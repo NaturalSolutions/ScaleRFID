@@ -4,13 +4,11 @@ import logging
 import logging.handlers
 import os
 
+root = os.path.dirname(os.path.realpath(os.path.basename(__file__)))
 
-LOG_DIR = os.path.join(
-    os.path.dirname(os.path.realpath(os.path.basename(__file__))),
-    'log')
+LOG_DIR = os.path.join(root, 'log')
 os.makedirs(LOG_DIR, exist_ok=True)
 LOG_FILE = os.path.join(LOG_DIR, 'pesee.log')
-
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 _formatter = logging.Formatter(
@@ -28,7 +26,11 @@ _filelog.setLevel(logging.DEBUG)
 _filelog.setFormatter(_formatter)
 logger.addHandler(_filelog)
 
-ASSETS = '/home/pi/ScaleRFID/assets'
+DB_PATH = os.path.expanduser(os.path.join(root, 'Public'))
+os.makedirs(DB_PATH, exist_ok=True)
+
+ASSETS = os.path.expanduser(os.path.join(root, 'assets'))
+os.makedirs(ASSETS, exist_ok=True)
+
 HKB4_PORT = '/dev/input/by-id/usb-413d_2107-event-mouse'
 RFID_READER_PORT = '/dev/ttyUSB0'
-DB_PATH = '.'  # '/home/pi/Share/Public'
