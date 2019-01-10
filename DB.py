@@ -10,8 +10,18 @@ from sqlalchemy.orm import sessionmaker
 import datetime
 import glob
 import os
+import sys
+import logging
 
-import Screen
+
+logger = logging.getLogger()
+
+try:
+    import Screen
+except ImportError as e:
+    logger.debug(e)
+    logging.warning('DB module: Assuming development environment, redirecting Screen functionality')
+    Screen = type('Screen', (), {'msg': lambda m, e=None, b=None: logger.info('** %s **', m)})
 
 Base = declarative_base()
 
@@ -56,18 +66,18 @@ class Log(Base):
 #     strdate = datetime.datetime.now
 
 
-def testFiles():
+def testFiles(settings):
     # * means all if need specific format then *.db
-    list_of_files = glob.glob('/home/pi/Share/Public/*.db')
+    list_of_files = glob.glob(os.path.join(settings.DB_PATH, '*.db'))
     if len(list_of_files) == 0:
         Screen.msg('DATABASE FILE NOT FOUND', 'ERROR', True)
-        exit()
+        sys.exit()
     strdate = datetime.datetime.now().strftime('%Y%m%d')
     list_of_files = glob.glob(
-        '/home/pi/Share/Public/Prep_Weighing_*_' + strdate + '*.db')
+        os.path.abspath(os.path.join(settings.DB_PATH, 'Prep_Weighing_*_' + strdate + '*.db')))
     if len(list_of_files) == 0:
         Screen.msg('DATABASE OUTDATED', 'ERROR', True)
-        exit()
+        sys.exit()
     latest_file = max(list_of_files, key=os.path.getctime)
     return latest_file
 
@@ -78,20 +88,20 @@ def get_export_file_name(str_file_name):
     return species
 
 
-def initDB(dbFile):
+def initDB(dbFile, settings):
     # Connexion de la base de donnees
-    engine = create_engine('sqlite:///' + dbFile)
+    engine = create_engine('sqlite:///' + os.path.abspath(os.path.join(settings.DB_PATH, dbFile)))
     session = sessionmaker(bind=engine)
     Base.metadata.create_all(engine)
     return session()
 
 
-def testSession():
-    db_file = testFiles()
+def testSession(settings):
+    db_file = testFiles(settings)
     species = get_export_file_name(db_file)
     strdate = datetime.datetime.now().strftime('%Y%m%d')
     export_name = 'WeightsFile_' + species + '_' + strdate
-    session = initDB(db_file)
+    session = initDB(db_file, settings)
     date_access = Log(Date=datetime.datetime.now())
     session.add(date_access)
     session.commit()

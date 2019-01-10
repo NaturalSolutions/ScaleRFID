@@ -11,10 +11,10 @@ LOG_DIR = os.path.join(
 os.makedirs(LOG_DIR, exist_ok=True)
 LOG_FILE = os.path.join(LOG_DIR, 'pesee.log')
 
-logger = logging.getLogger('')
+logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 _formatter = logging.Formatter(
-    '%(asctime)s - %(levelname)s - %(message)s')
+    '%(asctime)s %(levelname)s - %(message)s')
 _consolelog = logging.StreamHandler()
 _consolelog.setLevel(logging.DEBUG)
 _consolelog.setFormatter(_formatter)
@@ -27,6 +27,8 @@ _filelog = logging.handlers.RotatingFileHandler(
 _filelog.setLevel(logging.DEBUG)
 _filelog.setFormatter(_formatter)
 logger.addHandler(_filelog)
+
 ASSETS = '/home/pi/ScaleRFID/assets'
 HKB4_PORT = '/dev/input/by-id/usb-413d_2107-event-mouse'
 RFID_READER_PORT = '/dev/ttyUSB0'
+DB_PATH = '.'  # '/home/pi/Share/Public'

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import os
-import epd2in9
+from lib import epd2in9
 # import epdif
 # import PIL
 from PIL import Image, ImageDraw, ImageFont
