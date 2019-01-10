@@ -16,7 +16,8 @@ class System:
     def valid_tag(self, *args, **kwargs):
         logger.debug('valid_tag:%s: %s %s', self.state, args, kwargs)
 
-        if current_tag is None or not current_tag.validate(*args, **kwargs):
+        if (current_tag is None
+                or not current_tag.validate(current_tag.code, *args, **kwargs)):  # noqa: E501
             return False
 
         return True
@@ -26,7 +27,8 @@ class System:
 
         logger.debug('invalid_tag:%s: %s %s', self.state, args, kwargs)
 
-        if current_tag is not None and current_tag.validate(*args, **kwargs):
+        if (current_tag is not None
+                and current_tag.validate(current_tag.code, *args, **kwargs)):
             return False
 
         current_tag = None
@@ -59,22 +61,21 @@ class System:
 
             if current_specimen is None or current_specimen.ID_Reneco is None:
                 logger.warning('Bird Chip Not In Database')
-                self.to_query_unknown('Bird Chip Not In Database')
+                self.to_querying_unknown('Bird Chip Not In Database')
 
             if current_specimen.Position is None:
                 logger.warning('BIRD POSITION NOT IN DATABASE')
-                self.to_query_unknown('BIRD POSITION NOT IN DATABASE')
+                self.to_querying_unknown('BIRD POSITION NOT IN DATABASE')
 
             if current_specimen.Weight not in (None, 0, 0.0):
                 logger.warning('Bird Already Weighed')
-                self.to_query_unknown('Bird Already Weighed')
+                self.to_querying_unknown('Bird Already Weighed')
 
         except Exception as e:
             logger.critical('DB related error: %s', e)
-            self.to_query_unknown('DB related error: {}'.format(e))
+            self.to_querying_unknown('DB related error: {}'.format(e))
 
-    def acknowledgement(self):
-        self.acknowledge()
+        self.to_querying_known()
 
     # def show_graph(self, *args, **kwargs):
     #     stream = io.BytesIO()

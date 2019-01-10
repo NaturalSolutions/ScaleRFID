@@ -20,8 +20,8 @@ try:
     import Screen
 except ImportError as e:
     logger.debug(e)
-    logging.warning('DB module: Assuming development environment, redirecting Screen functionality')
-    Screen = type('Screen', (), {'msg': lambda m, e=None, b=None: logger.info('** %s **', m)})
+    logging.warning('DB module: Assuming development environment, redirecting Screen functionality')  # noqa: E501
+    Screen = type('Screen', (), {'msg': lambda m, e=None, b=None: logger.info('** %s **', m)})  # noqa: E501
 
 Base = declarative_base()
 

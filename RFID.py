@@ -59,7 +59,7 @@ class RFIDTag:
             code = code.split(RFIDTag.id_match_end, 1)[0]
 
             logger.info('RFIDReader: validated tag id: %s', code)
-            self.id = code
+            self.id = code.strip()
             return self.id
 
         return False
