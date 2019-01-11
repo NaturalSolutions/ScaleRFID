@@ -1,6 +1,3 @@
-#!venv/bin/python3
-
-
 class Event(object):
     def __init__(self, name, data):
         self.name = name

@@ -1,6 +1,5 @@
 #!venv/bin/python3
 # sudo ~/ScaleRFID/venv/bin/python3 -m ScaleRFID
-# FIXME: https://github.com/topics/state-machine?l=python
 import os
 import signal
 import time
@@ -29,10 +28,7 @@ killswitch = KillSwitch.KillSwitch(
     key_code=settings.KILLSWITCH_KEYCODE,
     threshold=settings.KILLSWITCH_THRESHOLD)
 reader = RFIDReader(settings.RFID_READER_PORT)
-DB.initDB(
-    ''.join(['Prep_Weighing_test_', datetime.now().strftime('%Y%m%d'), '.db']),
-    settings.DB_PATH)
-system = System(reader, DB.testSession(settings.DB_PATH)['session'])
+
 
 pool = []
 q = mp.Queue(maxsize=4)
@@ -138,32 +134,41 @@ try:
         print('Started KeyboardHandle service')
     else:
         logger.critical('Could not start KeyboardHandle service. Exiting.')
-        shutdown(127)
-    # class KeyboardHandleService(multiprocessing.Process):
-    #
-    # def __init__(self, hkb_input, q):
-    #     multiprocessing.Process.__init__(self)
-    #     self.exit = multiprocessing.Event()
-    #
-    # def run(self):
-    #     while not self.exit.is_set():
-    #         hkb_input.read(False, q)
-    #
-    # def disconnect(self):
-    #     self.exit.set()
+        shutdown(signal.SIGINT)
 
-    Machine = MachineFactory.get_predefined(graph=False, nested=True)
+    # class KeyboardHandleService(mp.Process):
+    #
+    #     def __init__(self, hkb_input, q):
+    #         mp.Process.__init__(self)
+    #         self.exit = mp.Event()
+    #         self.hkb_input = hkb_input
+    #         self.q = q
+    #
+    #     def run(self):
+    #         while not self.exit.is_set():
+    #             self.hkb_input.read(False, self.q)
+    #
+    #     def disconnect(self):
+    #         self.exit.set()
+
+    dbname = ''.join(
+        ['Prep_Weighing_test_', datetime.now().strftime('%Y%m%d'), '.db'])
+    DB.initDB(dbname, settings.DB_PATH)  # CHECK PERMS == ROOT
+    system = System(reader, DB.testSession(settings.DB_PATH)['session'])
+    logger.debug('Database in use: %s', os.path.join(settings.DB_PATH, dbname))
+
+    Machine = MachineFactory.get_predefined(graph=True, nested=True)
     machine = Machine(
         model=system,
         states=settings.STATES,
         transitions=settings.TRANSITIONS,
         initial='waiting',
-        # show_auto_transitions=False,
-        # title="Master",
-        # show_conditions=True
+        show_auto_transitions=False,
+        title="Master",
+        show_conditions=True
     )
-    # main loop
     system.run()
+    # main loop
     while not killswitch.activated:
 
         if q.qsize() > 0:
@@ -175,4 +180,4 @@ try:
 except (queue.Full, Exception) as e:
     logger.critical(e)
     logger.debug(q)
-    shutdown(127)
+    shutdown(signal.SIGINT)
