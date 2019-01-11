@@ -85,7 +85,7 @@ def handle_shutdown(event: Event):
 @inputEvent
 def handle_killswitch(event: Event):
     if (event.data.get('type', False)
-            and event.data['type'] == 'keyrelease'
+            and event.data['type'] == 'keypress'
             and event.data['code'] == killswitch.key_code):
 
         killswitch.register(event.data['ts'])
