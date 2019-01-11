@@ -35,7 +35,7 @@ class EventDispatcher(object):
             for listener in listeners:
                 if (hasattr(listener, '__qualname__')
                         and len(listener.__qualname__.split('.')) > 1):
-                    listener.__qualname__(self, event)
+                    listener(listener, event)
                 else:
                     listener(event)
 
