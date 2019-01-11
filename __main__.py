@@ -1,4 +1,5 @@
 #!venv/bin/python3
+# sudo apt install -yq graphviz graphviz-dev
 # sudo ~/ScaleRFID/venv/bin/python3 -m ScaleRFID
 import os
 import signal
@@ -131,7 +132,7 @@ try:
     KeyboardHandleService.start()
     if KeyboardHandleService:
         pool.append(KeyboardHandleService)
-        print('Started KeyboardHandle service')
+        logger.info('Started KeyboardHandle service')
     else:
         logger.critical('Could not start KeyboardHandle service. Exiting.')
         shutdown(signal.SIGINT)
