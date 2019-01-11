@@ -1,9 +1,8 @@
-import logging
-
 from . import DB
 from .RFID import RFIDTag
+from .prompt import Prompt
+from .settings import logger
 
-logger = logging.getLogger()
 current_tag = None
 current_specimen = None
 
@@ -12,6 +11,7 @@ class System:
     def __init__(self, reader, db):
         self.reader = reader
         self.db = db
+        self.prompt = None
 
     def valid_tag(self, *args, **kwargs):
         logger.debug('valid_tag:%s: %s %s', self.state, args, kwargs)
@@ -57,28 +57,43 @@ class System:
                 .query(DB.Session)\
                 .filter(DB.Session.ID_RFID == current_tag.id)\
                 .first()
-            logger.info('%s', current_specimen)
-
-            if current_specimen is None or current_specimen.ID_Reneco is None:
-                logger.warning('Bird Chip Not In Database')
-                self.to_querying_unknown('Bird Chip Not In Database')
-                return
-
-            if current_specimen.Position is None:
-                logger.warning('BIRD POSITION NOT IN DATABASE')
-                self.to_querying_unknown('BIRD POSITION NOT IN DATABASE')
-                return
-
-            if current_specimen.Weight not in (None, 0, 0.0):
-                logger.warning('Bird Already Weighed')
-                self.to_querying_unknown('Bird Already Weighed')
-                return
-
-            self.to_querying_known()
+            logger.info('current specimen: %s', current_specimen)
 
         except Exception as e:
             logger.critical('DB related error: %s', e)
-            self.to_querying_unknown('DB related error: {}'.format(e))
+            # self.to_querying_unknown('DB related error: {}'.format(e))
+
+    def query_validate(self, *args, **kwargs):
+        if (current_specimen is None
+                or current_specimen.ID_Reneco is None):
+            logger.warning('UNREGISTERED_SPECIMEN')
+            return False
+
+        if current_specimen.Position is None:
+            logger.warning('NO_POSITION')
+            return False
+
+        if current_specimen.Weight not in (None, 0, 0.0):
+            logger.warning('ALREADY_WEIGHED')
+            return False
+
+        return True
+
+    def weight_read(self):
+        logger.warning('`system.weight_read` unimplemented.')
+
+    def weight_validate(self):
+        logger.warning('`system.weight_validate` unimplemented.')
+        return True
+
+    def prompt_init(self):
+        self.prompt = Prompt(msg='Pouët\n1 - OK\n2 - NOK')
+
+    def prompt_read(self):
+        self.prompt.read()
+
+    def prompt_validate(self):
+        return self.prompt.validate()
 
     def show_graph(self, *args, **kwargs):
         import os

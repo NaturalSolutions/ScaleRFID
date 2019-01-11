@@ -1,12 +1,10 @@
-import logging
 # import Screen
 from datetime import datetime
 from time import sleep
 from .event_dispatcher import Event, EventDispatcher
-from .settings import KEYMAP
+from .settings import KEYMAP, logger
 
 
-logger = logging.getLogger()
 dispatcher = EventDispatcher()
 
 
@@ -49,10 +47,12 @@ ANY REMARKS ?
 
 
 class Prompt:
+    answer = ''
+
     def __init__(self, msg):
         # TODO: Screen interface
         logger.info(msg)
-        self.answer = ''
+        Prompt.answer = ''
         self.enquery = ''
         lines = msg.splitlines()
         if (len(lines) > 1
@@ -61,55 +61,72 @@ class Prompt:
 
     def validate(self):
         lines = self.enquery.splitlines()
-        if len(lines) > 1 and len(self.answer) > 0:
-            match = [
-                line[0] for line in lines
-                if line.startswith(self.answer)]
-            logger.debug('answer %s match %s', self.answer, match)
-            return match
+        label = lines[0]
+        choice = [line[0] for line in lines[1:] if line[0] == Prompt.answer]
+        if len(choice) == 1:
+            return label, choice[0]
 
         return False
 
-    def check(self):
-        match = None
-        while match is None:
-            while (len(self.enquery) > 0  # FIXME DOING
-                    and len(self.answer) == 0
-                    and match is None):
-                sleep(.01)
-            match = self.validate()
-        logger.info(match if match else 'no match')
+    def read(self):
+        while (len(self.enquery) > 0
+                and len(Prompt.answer) == 0):
+            sleep(.1)
 
     @classmethod
     @inputEvent
     def handle_input(cls, event: Event):
-
         if (event.data.get('type', False)
                 and event.data['type'] == 'keyrelease'):
             logger.info(
-                'Processing "%s" scan_code %s',
+                'Processing keycode=%s scan_code=%s',
                 KEYMAP[event.data['code']][0], event.data['code'])
 
-            cls.answer = KEYMAP[event.data['code']][0]
+            Prompt.answer = KEYMAP[event.data['code']][0]
 
 
 if __name__ == '__main__':
+    import threading
+
+    threads = []
     blah = Prompt(HIGH_WEIGHT)
-    sleep(.5)
-    dispatch({
-        'inputEvent': {
-            'type': 'keyrelease',
-            'ts': datetime.now().timestamp(),
-            'code': 46
-        }
-    })
-    logger.debug(blah.answer)
-    blah.check()
-    dispatch({
-        'inputEvent': {
-            'type': 'keyrelease',
-            'ts': datetime.now().timestamp(),
-            'code': 30
-        }
-    })
-    blah.check()
+
+    def fn1():
+        sleep(.6)
+        dispatch({
+            'inputEvent': {
+                'type': 'keyrelease',
+                'ts': datetime.now().timestamp(),
+                'code': 48  # 30
+            }
+        })
+
+    def fn2():
+        sleep(1.2)
+        dispatch({
+            'inputEvent': {
+                'type': 'keyrelease',
+                'ts': datetime.now().timestamp(),
+                'code': 46
+            }
+        })
+
+    def fn3():
+        sleep(2)
+        dispatch({
+            'inputEvent': {
+                'type': 'keyrelease',
+                'ts': datetime.now().timestamp(),
+                'code': 30  # 48
+            }
+        })
+
+    for fn in {fn1, fn2, fn3}:
+        t = threading.Thread(target=fn)
+        threads.append(t)
+        t.start()
+    blah.read()
+    valid = blah.validate()
+    if valid:
+        logger.debug('validated prompt: %s', valid)
+        del blah

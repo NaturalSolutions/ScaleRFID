@@ -33,7 +33,8 @@ class RFIDReader():
             #     else:
             #          return reader.read()
             # Mock
-            return ('1234567890ABCDEF'.join(
+            # return ('1234567890ABCDEF'.join(
+            return ('0007200EEA'.join(
                 [RFIDTag.id_match_start, RFIDTag.id_match_end])
                     if not self._disconnected_error
                     and not self._misconfigured_error else None)

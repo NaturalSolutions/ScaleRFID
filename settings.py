@@ -79,36 +79,36 @@ STATES = [
 ]
 
 TRANSITIONS = [
-    {'trigger': 'run',              'source': 'waiting',              'dest': 'running',                                                                     'after': 'collect_tag'},            # noqa: E501
-    ['wait', ['running', 'prompting_resolved'], 'waiting'],
-    ['autoinit', ['tagreading'], 'tagreading_init'],
-    ['autoinit', ['querying', ], 'querying_init'],
-    ['autoinit', ['weighing', 'prompt_resolved'], 'weighing_init'],
-    ['autoinit', ['updating'], 'updating_init'],
-    ['autoinit', ['prompting', ], 'prompting_init'],
+    {'trigger': 'run',               'source': 'waiting',              'dest': 'running',                                                                         'after': 'collect_tag'},              # noqa: E501
+    {'trigger': 'wait',              'source': ['running',    'prompting_resolved'], 'dest': 'waiting'},                                                                                                # noqa: E501
+    {'trigger': 'init_tag',          'source': ['tagreading', 'prompting_resolved'], 'dest': 'tagreading_init'},                                                                                        # noqa: E501
+    {'trigger': 'init_query',        'source': ['querying',   'prompting_resolved'], 'dest': 'querying_init'},                                                                                          # noqa: E501
+    {'trigger': 'init_weighing',     'source': ['weighing',   'prompting_resolved'], 'dest': 'weighing_init',                                                     'after': 'read_weight'},              # noqa: E501
+    {'trigger': 'init_update',       'source': ['updating',   'prompting_resolved'], 'dest': 'updating_init'},                                                                                          # noqa: E501
+    {'trigger': 'init_prompt',       'source': ['prompting', ],        'dest': 'prompting_init',                                     'before': 'prompt_init',     'after': 'read_prompt'},              # noqa: E501
     # check database update, create .CSV
-    {'trigger': 'collect_tag',      'source': 'running',              'dest': 'tagreading',                                                                  'after': 'read_tag'},               # noqa: E501
-    {'trigger': 'read_tag',         'source': 'tagreading_init',      'dest': 'tagreading_read',                                    'before': 'reader_read', 'after': 'validate_tag'},           # noqa: E501
-    {'trigger': 'validate_tag',     'source': 'tagreading_read',      'dest': 'tagreading_disconnected', 'conditions': 'reader_disconnected',                'after': 'acknowledge'},            # noqa: E501
-    {'trigger': 'validate_tag',     'source': 'tagreading_read',      'dest': 'tagreading_init',         'conditions': 'invalid_tag'},                                                                    # noqa: E501
-    {'trigger': 'validate_tag',     'source': 'tagreading_read',      'dest': 'tagreading_validated',    'conditions': 'valid_tag',                          'after': 'collect_query'},          # noqa: E501
-    {'trigger': 'collect_query',    'source': 'tagreading_validated', 'dest': 'querying',                                                                    'after': 'read_query'},             # noqa: E501
-    {'trigger': 'read_query',       'source': 'querying_init',        'dest': 'querying_read',                                      'before': 'query_read',  'after': 'validate_query'},         # noqa: E501
-    {'trigger': 'validate_query',   'source': 'querying_read',        'dest': 'querying_unknown',                                                            'after': 'acknowledge'},            # unregistered specimen or unknown specimen position  # noqa: E501
-    {'trigger': 'validate_query',   'source': 'querying_read',        'dest': 'querying_known',                                                              'after': 'collect_weighing'},       # registered specimen and known specimen position  # noqa: E501
-    # {'trigger': 'validate_query',   'source': 'querying_read',         'dest': 'querying_init'},  # some db query related error  # noqa: E501
-    {'trigger': 'collect_weighing', 'source': 'querying_known',       'dest': 'weighing'},  # valid chip and known specimen and known position and not yet weighed today  # noqa: E501
-    {'trigger': 'read_weight',      'source': 'weighing_init',        'dest': 'weighing_read',                                      'before': 'weight_read', 'after': 'validate_weight'},        # noqa: E501
+    {'trigger': 'collect_tag',       'source': 'running',              'dest': 'tagreading',                                                                      'after': 'read_tag'},                 # noqa: E501
+    {'trigger': 'read_tag',          'source': 'tagreading_init',      'dest': 'tagreading_read',                                    'before': 'reader_read',     'after': 'validate_tag'},             # noqa: E501
+    {'trigger': 'validate_tag',      'source': 'tagreading_read',      'dest': 'tagreading_disconnected', 'conditions': 'reader_disconnected',                    'after': 'acknowledge'},              # noqa: E501
+    {'trigger': 'validate_tag',      'source': 'tagreading_read',      'dest': 'tagreading_init',         'conditions': 'invalid_tag'},                                                                 # noqa: E501
+    {'trigger': 'validate_tag',      'source': 'tagreading_read',      'dest': 'tagreading_validated',    'conditions': 'valid_tag',                              'after': 'collect_query'},            # noqa: E501
+    {'trigger': 'collect_query',     'source': 'tagreading_validated', 'dest': 'querying',                                                                        'after': 'read_query'},               # noqa: E501
+    {'trigger': 'read_query',        'source': 'querying_init',        'dest': 'querying_read',                                      'before': 'query_read',      'after': 'validate_query'},           # noqa: E501
+    {'trigger': 'validate_query',    'source': 'querying_read',        'dest': 'querying_unknown',        'unless': 'query_validate',                             'after': 'acknowledge'},              # unregistered specimen or unknown specimen position  # noqa: E501
+    {'trigger': 'validate_query',    'source': 'querying_read',        'dest': 'querying_known',                                                                  'after': 'collect_weighing'},         # registered specimen and known specimen position  # noqa: E501
+    # {'trigger': 'validate_query',   'source': 'querying_read',        'dest': 'querying_init'},  # some db query related error  # noqa: E501
+    {'trigger': 'collect_weighing',  'source': 'querying_known',       'dest': 'weighing'},  # valid chip and known specimen and known position and not yet weighed today  # noqa: E501
+    {'trigger': 'read_weight',       'source': 'weighing_init',        'dest': 'weighing_read',                                      'before': 'weight_read',     'after': 'validate_weight'},          # noqa: E501
     # {'trigger': 'validate_weight',  'source': 'weighing_read',        'dest': 'weighing_init'},  # disconnected scale_reader  # noqa: E501
-    {'trigger': 'validate_weight',  'source': 'weighing_read',        'dest': 'weighing_rejected',                                                           'after': 'acknowledge'},            # inconsistent or pathological weight  # noqa: E501
-    {'trigger': 'validate_weight',  'source': 'weighing_read',        'dest': 'weighing_validated',                                                          'after': 'collect_update'},         # normal specimen weight  # noqa: E501
-    {'trigger': 'collect_update',   'source': 'weighing_validated',   'dest': 'updating',                                                                    'after': 'read_update'},            # noqa: E501
-    {'trigger': 'read_update',      'source': 'updating_init',        'dest': 'updating_read',                                                               'after': 'validate_update'},        # noqa: E501
+    {'trigger': 'validate_weight',   'source': 'weighing_read',        'dest': 'weighing_rejected',       'unless': 'weigth_validate',                            'after': 'acknowledge'},              # inconsistent or pathological weight  # noqa: E501
+    {'trigger': 'validate_weight',   'source': 'weighing_read',        'dest': 'weighing_validated',                                 'before': 'weight_validate', 'after': 'collect_update'},           # normal specimen weight  # noqa: E501
+    {'trigger': 'collect_update',    'source': 'weighing_validated',   'dest': 'updating',                                                                        'after': 'read_update'},              # noqa: E501
+    {'trigger': 'read_update',       'source': 'updating_init',        'dest': 'updating_read',                                                                   'after': 'validate_update'},          # noqa: E501
     # {'trigger': 'validate_update',  'source': 'updating_read',        'dest': 'updating_init'},  # some db update related error  # noqa: E501
-    {'trigger': 'validate_update',  'source': 'updating_read',        'dest': 'updating_failed',                                                             'after': 'acknowledge'},            # db record update error  # noqa: E501
-    {'trigger': 'validate_update',  'source': 'updating_read',        'dest': 'updating_committed',                                                          'after': 'acknowledge'},  # COLLECT OPs COMMENTS  # noqa: E501
-    ['read', 'prompting_init', 'prompting_read'],
-    ['validate', 'prompting_read', 'prompting_resolved'],  # confirmed pathological weight or reconnected rdfidreader or acknowledged (outdated db or specimen unknown position or unregistered specimen or specimen invalid rf chip id)  # noqa: E501
-    {'trigger': 'acknowledge', 'source': ['tagreading_disconnected', 'querying_unknown', 'weighing_rejected', 'updating_failed', 'updating_committed'], 'dest': 'prompting', 'before': 'show_graph'},  # noqa: E501
+    {'trigger': 'validate_update',   'source': 'updating_read',        'dest': 'updating_failed',                                                                 'after': 'acknowledge'},              # db record update error  # noqa: E501
+    {'trigger': 'validate_update',   'source': 'updating_read',        'dest': 'updating_committed',                                                              'after': 'acknowledge'},  # COLLECT OPs COMMENTS  # noqa: E501
+    {'trigger': 'read_prompt',       'source': 'prompting_init',       'dest': 'prompting_read',                                      'before': 'prompt_read',    'after': 'validate_prompt'},          # noqa: E501
+    {'trigger': 'validate_prompt',   'source': 'prompting_read',       'dest': 'prompting_resolved',      'conditions': 'prompt_validate'},  # confirmed pathological weight or reconnected rdfidreader or acknowledged (outdated db or specimen unknown position or unregistered specimen or specimen invalid rf chip id)  # noqa: E501
+    {'trigger': 'acknowledge',       'source': ['tagreading_disconnected', 'querying_unknown', 'weighing_rejected', 'updating_failed', 'updating_committed'], 'dest': 'prompting', 'before': 'show_graph'},  # noqa: E501
     # collect operator's comments
 ]
