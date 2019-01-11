@@ -40,14 +40,14 @@ ASSETS = os.path.join(MODULE_ROOT, 'assets')
 os.makedirs(ASSETS, exist_ok=True)
 
 HKB4_PORT = '/dev/input/by-id/usb-413d_2107-event-mouse'
-HKB4_KEYMAP = {
-    30: {'1aq'},
-    32: {'4d'},
-    46: {'3c'},
-    48: {'2b'}
+KEYMAP = {
+    30: '1aq',
+    32: '4d',
+    46: '3c',
+    48: '2b'
 }
 
-KILLSWITCH_KEYCODE = 30  # ought to be drawed from HKB4_KEYMAP keys
+KILLSWITCH_KEYCODE = 30  # ought to be drawed from KEYMAP keys
 KILLSWITCH_THRESHOLD = .500  # ms
 
 RFID_READER_PORT = '/dev/ttyUSB0'
