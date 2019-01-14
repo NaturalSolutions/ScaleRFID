@@ -18,11 +18,11 @@ class Prompt:
         return cls.parse_msg(msg)
 
     @staticmethod
-    def __str__():
+    def __repr__():
         return '<Prompt enquery={} choices={} answer={} ts={}>'.format(
             Prompt.enquery, Prompt.choices, Prompt.answer, Prompt.ts)
 
-    __repr__ = __str__
+    __str__ = __repr__
 
     @classmethod
     def parse_msg(cls, msg):
@@ -41,16 +41,19 @@ class Prompt:
 
     @classmethod
     def validate(cls):
-        logger.debug(
-            'Prompt validation: enquery=%s choices=%s',
-            cls.enquery, cls.choices)
-        if cls.enquery != '':
-            # dialog case
-            if cls.choices != dict() and cls.answer != '':
-                choice = cls.choices.get(cls.answer, False)
-                return choice, cls.answer
-            # notification case
+        if (isinstance(cls.choices, dict) and isinstance(cls.answer, str)
+                and cls.enquery):
+            # dialog
+            if cls.choices and cls.answer:
+                logger.debug(
+                    'Validation dialog: enquery=%s choices=%s',
+                    cls.enquery, cls.choices)
+                choice = cls.choices.get(cls.answer, None)
+                return choice, cls.answer if choice else False
+            # notification
             elif cls.choices == dict():
+                logger.debug(
+                    'Validation notification: enquery=%s', cls.enquery)
                 return True
 
         return False
@@ -63,6 +66,7 @@ class Prompt:
 
 
 if __name__ == '__main__':
+    # sudo -H /my_venv/bin/python3 -m ScaleRFID.prompt
     import threading
     from random import shuffle
     from .settings import KEYMAP, DIALOGS, NOTIFICATIONS

@@ -1,6 +1,11 @@
-#!venv/bin/python3
-# sudo apt install -yq graphviz graphviz-dev
-# sudo ~/ScaleRFID/venv/bin/python3 -m ScaleRFID
+# install:
+#     git clone https://github.com/NaturalSolutions/ScaleRFID.git
+#     sudo apt install -yq graphviz graphviz-dev python3-tk
+#     cd ScaleRFID && pipenv install
+# get VENV_PATH:
+#     pipenv --venv
+# run from any other dir than ScaleRFID:
+#     sudo -H <VENV_PATH>/bin/python3 -m ScaleRFID
 import os
 import signal
 import time
@@ -168,7 +173,7 @@ try:
 
     dbname = ''.join(
         ['Prep_Weighing_test_', datetime.now().strftime('%Y%m%d'), '.db'])
-    DB.initDB(dbname, settings.DB_PATH)  # CHECK PERMS == ROOT
+    DB.initDB(dbname, settings.DB_PATH)  # CHECK DB PERMS and OWNER == ROOT ?
     prompt = Prompt.from_str(Prompt, '')
     system = System(
         reader,
