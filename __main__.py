@@ -15,11 +15,12 @@ from . import (
     settings,
     hkb_input,
     KillSwitch,
-    DB
+    DB,
 )
 from .event_dispatcher import Event, EventDispatcher
 from .RFID import RFIDReader
 from .system import System
+from .prompt import Prompt
 
 logger = settings.logger
 mp.log_to_stderr(10)
@@ -103,7 +104,7 @@ def handle_killswitch(event: Event):
                 })
         elif killswitch.pending:
             logger.warn(
-                ' delta: %s key_code: %s state: %s',
+                'delta: %s key_code: %s state: %s',
                 '{:3.6f}µs'.format(killswitch._delta),
                 event.data['code'], killswitch.state)
 
@@ -122,6 +123,18 @@ def handle_any_key_release(event: Event):
 
         else:
             logger.debug(' Processing scan_code %s', event.data['code'])
+
+
+@inputEvent
+def handle_prompt_response(event: Event):
+    if (event.data.get('type', False)
+            and event.data['type'] == 'keyrelease'):
+        logger.debug(
+            'Processing keycode=%s scan_code=%s',
+            settings.KEYMAP[event.data['code']][0], event.data['code'])
+
+    Prompt.answer = settings.KEYMAP[event.data['code']][0]
+    logger.debug('%s %s', Prompt.__str__(), system)
 
 
 # main
@@ -156,7 +169,12 @@ try:
     dbname = ''.join(
         ['Prep_Weighing_test_', datetime.now().strftime('%Y%m%d'), '.db'])
     DB.initDB(dbname, settings.DB_PATH)  # CHECK PERMS == ROOT
-    system = System(reader, DB.testSession(settings.DB_PATH)['session'])
+    prompt = Prompt.from_str(Prompt, '')
+    system = System(
+        reader,
+        DB.testSession(settings.DB_PATH)['session'],
+        prompt
+    )
     logger.debug('Database in use: %s', os.path.join(settings.DB_PATH, dbname))
 
     Machine = MachineFactory.get_predefined(graph=True, nested=True)
@@ -169,11 +187,25 @@ try:
         title="Master",
         show_conditions=True
     )
+    SystemService = mp.Process(
+        name='SystemService',
+        target=system.run,
+    )
+
     if KeyboardHandleService.is_alive():
-        system.run()
+        SystemService.start()  # system.run()
+
+    if SystemService.is_alive():
+        pool.append(SystemService)
+        logger.info('Started System service')
+    else:
+        logger.critical('Could not start System service. Exiting.')
+        shutdown(signal.SIGINT)
+
     # main loop
     while (not killswitch.activated
-            and KeyboardHandleService.is_alive()):
+            and KeyboardHandleService.is_alive()
+            and SystemService.is_alive()):
 
         if q.qsize() > 0:
             event = q.get(timeout=1)
@@ -181,7 +213,16 @@ try:
 
         time.sleep(.01)
 
+    # fini
+    logger.critical('NORMAL OPERATION ENDING')
+    shutdown(signal.SIGTERM)
+
 except (queue.Full, Exception) as e:
+    import sys
+    import traceback
+
     logger.critical(e)
-    logger.debug(q)
+    exc_type, exc_value, exc_traceback = sys.exc_info()
+    traceback.print_exception(exc_type, exc_value, exc_traceback,
+                              limit=2, file=sys.stdout)
     shutdown(signal.SIGINT)

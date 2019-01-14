@@ -1,79 +1,96 @@
 # import Screen
 from datetime import datetime
 from time import sleep
-from .event_dispatcher import Event, EventDispatcher
-from .settings import KEYMAP  # , DIALOGS  # , NOTIFICATIONS , logger
 import logging
 
 logger = logging.getLogger()
-dispatcher = EventDispatcher()
-
-
-def dispatch(event):
-    _type = list(event.keys())[0]
-    interfaced = Event(_type, event[_type])
-    dispatcher.dispatch_event(interfaced)
-
-
-def inputEvent(fn):
-    dispatcher.add_listener('inputEvent', fn)
 
 
 class Prompt:
     enquery = ''
     choices = dict()
     answer = ''
+    ts = ''
 
-    def __init__(self, msg):
+    def from_str(cls, msg):
         # TODO: Screen interface
-        logger.critical(msg)
-        self.parse_msg(msg)
+        logger.debug(msg)
+        return cls.parse_msg(msg)
 
-    def parse_msg(self, msg):
+    @staticmethod
+    def __str__():
+        return '<Prompt enquery={} choices={} answer={} ts={}>'.format(
+            Prompt.enquery, Prompt.choices, Prompt.answer, Prompt.ts)
+
+    __repr__ = __str__
+
+    @classmethod
+    def parse_msg(cls, msg):
         lines = msg.splitlines()
         if (len(lines) > 1):
-            Prompt.enquery = lines[0]
-            Prompt.choices = {
+            cls.enquery = lines[0]
+            cls.choices = {
                 k: v
                 for k, v in [l.split(' - ', 1) for l in lines[1:]]}
+        else:
+            cls.enquery = msg
+            cls.choices = dict()
 
-    def validate(self):
+        cls.ts = datetime.now()
+        return cls
+
+    @classmethod
+    def validate(cls):
         logger.debug(
-            'validation: %s %s "%s"',
-            Prompt.enquery, Prompt.choices, Prompt.answer)
-        choice = Prompt.choices.get(Prompt.answer, False)
-        if choice:
-            return choice, Prompt.answer
+            'Prompt validation: enquery=%s choices=%s',
+            cls.enquery, cls.choices)
+        if cls.enquery != '':
+            # dialog case
+            if cls.choices != dict() and cls.answer != '':
+                choice = cls.choices.get(cls.answer, False)
+                return choice, cls.answer
+            # notification case
+            elif cls.choices == dict():
+                return True
 
         return False
 
-    def read(self):
-        logger.debug(
-            'reading: %s %s "%s"',
-            Prompt.enquery, Prompt.choices, Prompt.answer)
-        while (len(Prompt.choices.keys()) > 0 and len(Prompt.answer) == 0):
+    @classmethod
+    def read(cls):
+        while (len(cls.choices.keys()) > 0 and cls.answer == ''):
+            logger.debug('reading:%s', cls.__str__())
             sleep(.1)
 
+
+if __name__ == '__main__':
+    import threading
+    from random import shuffle
+    from .settings import KEYMAP, DIALOGS, NOTIFICATIONS
+    from .event_dispatcher import Event, EventDispatcher
+
+    dispatcher = EventDispatcher()
+    k = [30, 48, 46]
+    shuffle(k)
+    threads = []
+    blah = Prompt.from_str(Prompt, DIALOGS['HIGH_WEIGHT'])
+
+    def dispatch(event):
+        _type = list(event.keys())[0]
+        interfaced = Event(_type, event[_type])
+        dispatcher.dispatch_event(interfaced)
+
+    def inputEvent(fn):
+        dispatcher.add_listener('inputEvent', fn)
+
     @inputEvent
-    def handle_input(self, event: Event):
+    def handle_input(event: Event):
         if (event.data.get('type', False)
                 and event.data['type'] == 'keyrelease'):
             logger.debug(
                 'Processing keycode=%s scan_code=%s',
                 KEYMAP[event.data['code']][0], event.data['code'])
 
-            Prompt.answer = KEYMAP[event.data['code']][0]
-
-
-if __name__ == '__main__':
-    import threading
-    from random import shuffle
-    from .settings import DIALOGS  # , NOTIFICATIONS
-
-    k = [30, 48, 46]
-    shuffle(k)
-    threads = []
-    blah = Prompt(DIALOGS['HIGH_WEIGHT'])
+        Prompt.answer = KEYMAP[event.data['code']][0]
 
     def fn1():
         sleep(.6)
@@ -116,4 +133,10 @@ if __name__ == '__main__':
         blah.read()
 
     logger.debug('validated prompt: %s', valid)
-    del blah
+    for t in threads:
+        t.join()
+
+    logger.debug('validating notification')
+    blah = Prompt.from_str(Prompt, NOTIFICATIONS['UNREGISTERED_SPECIMEN'])
+    blah.read()
+    valid = blah.validate()

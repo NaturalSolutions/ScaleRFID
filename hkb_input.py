@@ -35,8 +35,8 @@ class HKB4Device():
                         event = self.get_event()
                         queue.put_nowait(event)
                     queue.close()
-        except (FileNotFoundError, Exception):
-            logger.error('HBK4_INPUT_DISCONNECTED_ERROR')
+        except (FileNotFoundError, Exception) as e:
+            logger.critical('HBK4_INPUT_DISCONNECTED_ERROR: %s', e)
             self._disconnected_error = True
             raise
 
@@ -134,7 +134,7 @@ if __name__ == '__main__':
             if (event.data['ts'] - killswitch._last.timestamp() < killswitch.threshold):  # noqa: E501
                 killswitch.increment()
                 logger.debug(
-                    ' delta: %s key_code: %s state: %s',
+                    'delta: %s key_code: %s state: %s',
                     event.data['ts'] - killswitch._last.timestamp(),
                     event.data['code'],
                     killswitch.state)

@@ -1,18 +1,17 @@
-from . import DB
-from .RFID import RFIDTag
-from .prompt import Prompt
-# from .settings import logger
 import logging
 
+from . import DB
+from .RFID import RFIDTag
+from .settings import DIALOGS, NOTIFICATIONS
 
 logger = logging.getLogger()
 
 
 class System:
-    def __init__(self, reader, db):
+    def __init__(self, reader, db, prompt):
         self.reader = reader
         self.db = db
-        self.prompt = None
+        self.prompt = prompt
         self.current_tag = None
         self.current_specimen = None
 
@@ -66,33 +65,47 @@ class System:
         if (self.current_specimen is None
                 or self.current_specimen.ID_Reneco is None):
             logger.warning('UNREGISTERED_SPECIMEN')
+            self.prompt.from_str(
+                self.prompt, NOTIFICATIONS['UNREGISTERED_SPECIMEN'])
             return False
 
         if self.current_specimen.Position is None:
             logger.warning('NO_POSITION')
+            self.prompt.from_str(
+                self.prompt, NOTIFICATIONS['NO_POSITION'])
             return False
 
         if self.current_specimen.Weight not in (None, 0, 0.0):
             logger.warning('ALREADY_WEIGHED')
+            self.prompt.from_str(
+                self.prompt, NOTIFICATIONS['ALREADY_WEIGHED'])
             return False
 
         return True
 
     def weight_read(self):
         logger.warning('`system.weight_read` unimplemented.')
+        return 3.1415
 
     def weight_validate(self):
         logger.warning('`system.weight_validate` unimplemented.')
         return True
 
     def prompt_read(self, *args, **kwargs):
-        self.show_graph()
         logger.debug('prompt read')
-        self.prompt = Prompt(msg='Pouët\n1 - OK\n2 - NOK')
         self.prompt.read()
 
     def prompt_validate(self, *args, **kwargs):
         return self.prompt.validate()
+
+    def prompt_invalid(self, *args, **kwargs):
+        cond = bool(
+            self.prompt.enquery != ''
+            and self.prompt.choices != dict()
+            and self.prompt.answer == '')
+        if cond:
+            logger.warning('invalid prompt response')
+        return cond
 
     def show_graph(self, *args, **kwargs):
         import os

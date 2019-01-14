@@ -19,7 +19,7 @@ LOG_FILE = os.path.join(LOG_DIR, 'pesee.log')
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 _formatter = logging.Formatter(
-    '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    '%(asctime)s - %(processName)s::%(name)s - %(levelname)s - %(message)s @%(funcName)s::%(filename)s:%(lineno)d')  # noqa: E501
 _consolelog = logging.StreamHandler()
 _consolelog.setLevel(logging.DEBUG)
 _consolelog.setFormatter(_formatter)
@@ -116,7 +116,7 @@ TRANSITIONS = [
     {'trigger': 'init_query',        'source': ['querying',   'prompting_resolved'], 'dest': 'querying_init'},                                                                                          # noqa: E501
     {'trigger': 'init_weighing',     'source': ['weighing',   'prompting_resolved'], 'dest': 'weighing_init',                                                     'after': 'read_weight'},              # noqa: E501
     {'trigger': 'init_update',       'source': ['updating',   'prompting_resolved'], 'dest': 'updating_init'},                                                                                          # noqa: E501
-    {'trigger': 'init_prompt',       'source': ['prompting',  'prompting_read'],     'dest': 'prompting_init'},                                                                                         # noqa: E501
+    {'trigger': 'init_prompt',       'source': ['prompting', ],     'dest': 'prompting_init'},                                                                                         # noqa: E501
     # check database update, create .CSV
     {'trigger': 'collect_tag',       'source': 'running',              'dest': 'tagreading',                                                                      'after': 'read_tag'},                 # noqa: E501
     {'trigger': 'read_tag',          'source': 'tagreading_init',      'dest': 'tagreading_read',                                    'before': 'reader_read',     'after': 'validate_tag'},             # noqa: E501
@@ -139,7 +139,8 @@ TRANSITIONS = [
     {'trigger': 'validate_update',   'source': 'updating_read',        'dest': 'updating_failed',                                                                 'after': 'acknowledge'},              # db record update error  # noqa: E501
     {'trigger': 'validate_update',   'source': 'updating_read',        'dest': 'updating_committed',                                                              'after': 'acknowledge'},  # COLLECT OPs COMMENTS  # noqa: E501
     {'trigger': 'read_prompt',       'source': 'prompting_init',       'dest': 'prompting_read',                                      'before': 'prompt_read',    'after': 'validate_prompt'},          # noqa: E501
-    {'trigger': 'validate_prompt',   'source': 'prompting_read',       'dest': 'prompting_resolved',      'conditions': 'prompt_validate'},  # confirmed pathological weight or reconnected rdfidreader or acknowledged (outdated db or specimen unknown position or unregistered specimen or specimen invalid rf chip id)  # noqa: E501
+    {'trigger': 'validate_prompt',   'source': 'prompting_read',       'dest': 'prompting_init',          'conditions': 'prompt_invalid',                         'after': 'read_prompt'},             # noqa: E501
+    {'trigger': 'validate_prompt',   'source': 'prompting_read',       'dest': 'prompting_resolved',      'conditions': 'prompt_validate', },  # confirmed pathological weight or reconnected rdfidreader or acknowledged (outdated db or specimen unknown position or unregistered specimen or specimen invalid rf chip id)  # noqa: E501
     {'trigger': 'acknowledge',       'source': ['tagreading_disconnected', 'querying_unknown', 'weighing_rejected', 'updating_failed', 'updating_committed'], 'dest': 'prompting', 'after': 'read_prompt'},  # noqa: E501
     # collect operator's comments
 ]
