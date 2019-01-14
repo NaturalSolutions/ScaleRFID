@@ -1,10 +1,11 @@
 from . import DB
 from .RFID import RFIDTag
 from .prompt import Prompt
-from .settings import logger
+# from .settings import logger
+import logging
 
-current_tag = None
-current_specimen = None
+
+logger = logging.getLogger()
 
 
 class System:
@@ -12,68 +13,66 @@ class System:
         self.reader = reader
         self.db = db
         self.prompt = None
+        self.current_tag = None
+        self.current_specimen = None
 
     def valid_tag(self, *args, **kwargs):
         logger.debug('valid_tag:%s: %s %s', self.state, args, kwargs)
 
-        if (current_tag is None
-                or not current_tag.validate(current_tag.code, *args, **kwargs)):  # noqa: E501
+        if (self.current_tag is None
+                or not self.current_tag.validate(self.current_tag.code, *args, **kwargs)):  # noqa: E501
             return False
 
         return True
 
     def invalid_tag(self, *args, **kwargs):
-        global current_tag
 
         logger.debug('invalid_tag:%s: %s %s', self.state, args, kwargs)
 
-        if (current_tag is not None
-                and current_tag.validate(current_tag.code, *args, **kwargs)):
+        if (self.current_tag is not None
+                and self.current_tag.validate(
+                    self.current_tag.code, *args, **kwargs)):
             return False
 
-        current_tag = None
+        self.current_tag = None
         return True
 
     def reader_disconnected(self, *args, **kwargs):
         logger.debug('not_connected:%s: %s %s', self.state, args, kwargs)
-        return (True
-                if self.reader._disconnected_error
-                or self.reader._misconfigured_error
-                else False)
+        return (self.reader._disconnected_error
+                or self.reader._misconfigured_error)
 
     def reader_read(self, *args, **kwargs):
-        global current_tag
 
         logger.debug('on_tagreading_init:%s: %s %s', self.state, args, kwargs)
 
-        current_tag = RFIDTag()
-        current_tag.code = self.reader.read()
+        self.current_tag = RFIDTag()
+        self.current_tag.code = self.reader.read()
 
     def query_read(self, *args, **kwargs):
-        global current_specimen
 
         try:
-            current_specimen = self.db\
+            self.current_specimen = self.db\
                 .query(DB.Session)\
-                .filter(DB.Session.ID_RFID == current_tag.id)\
+                .filter(DB.Session.ID_RFID == self.current_tag.id)\
                 .first()
-            logger.info('current specimen: %s', current_specimen)
+            logger.info('current specimen: %s', self.current_specimen)
 
         except Exception as e:
             logger.critical('DB related error: %s', e)
             # self.to_querying_unknown('DB related error: {}'.format(e))
 
     def query_validate(self, *args, **kwargs):
-        if (current_specimen is None
-                or current_specimen.ID_Reneco is None):
+        if (self.current_specimen is None
+                or self.current_specimen.ID_Reneco is None):
             logger.warning('UNREGISTERED_SPECIMEN')
             return False
 
-        if current_specimen.Position is None:
+        if self.current_specimen.Position is None:
             logger.warning('NO_POSITION')
             return False
 
-        if current_specimen.Weight not in (None, 0, 0.0):
+        if self.current_specimen.Weight not in (None, 0, 0.0):
             logger.warning('ALREADY_WEIGHED')
             return False
 
@@ -86,13 +85,13 @@ class System:
         logger.warning('`system.weight_validate` unimplemented.')
         return True
 
-    def prompt_init(self):
+    def prompt_read(self, *args, **kwargs):
+        self.show_graph()
+        logger.debug('prompt read')
         self.prompt = Prompt(msg='Pouët\n1 - OK\n2 - NOK')
-
-    def prompt_read(self):
         self.prompt.read()
 
-    def prompt_validate(self):
+    def prompt_validate(self, *args, **kwargs):
         return self.prompt.validate()
 
     def show_graph(self, *args, **kwargs):

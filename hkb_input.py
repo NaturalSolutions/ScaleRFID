@@ -19,19 +19,26 @@ class HKB4Device():
         self.path = path
         self.format = fmt
         self.continuously = False
+        self._disconnected_error = False
 
     def read(self, continuously=False, queue=None):  # Event | void
         self.continuously = self.continuously or continuously if continuously else False  # noqa: E501
-        with open(self.path, 'rb') as self.device:
-            event = None
+        try:
+            with open(self.path, 'rb') as self.device:
+                event = None
 
-            if not self.continuously:
-                event = self.get_event()
-                return event
-            else:
-                while self.continuously and queue:
+                if not self.continuously:
                     event = self.get_event()
-                    queue.put_nowait(event)
+                    return event
+                else:
+                    while self.continuously and queue:
+                        event = self.get_event()
+                        queue.put_nowait(event)
+                    queue.close()
+        except (FileNotFoundError, Exception):
+            logger.error('HBK4_INPUT_DISCONNECTED_ERROR')
+            self._disconnected_error = True
+            raise
 
     def get_event(self):
         event = None

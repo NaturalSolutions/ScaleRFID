@@ -24,6 +24,7 @@ from .system import System
 logger = settings.logger
 mp.log_to_stderr(10)
 dispatcher = EventDispatcher()
+assert os.path.exists(settings.HKB4_PORT)  # noqa: S101
 hkb4 = hkb_input.HKB4Device(settings.HKB4_PORT)
 killswitch = KillSwitch.KillSwitch(
     key_code=settings.KILLSWITCH_KEYCODE,
@@ -120,7 +121,7 @@ def handle_any_key_release(event: Event):
                 logger.debug('Pending killswitch activation')
 
         else:
-            logger.info(' Processing scan_code %s', event.data['code'])
+            logger.debug(' Processing scan_code %s', event.data['code'])
 
 
 # main
@@ -130,7 +131,7 @@ try:
         target=hkb4.read,
         args=(True, q))
     KeyboardHandleService.start()
-    if KeyboardHandleService:
+    if KeyboardHandleService.is_alive():
         pool.append(KeyboardHandleService)
         logger.info('Started KeyboardHandle service')
     else:
@@ -168,9 +169,11 @@ try:
         title="Master",
         show_conditions=True
     )
-    system.run()
+    if KeyboardHandleService.is_alive():
+        system.run()
     # main loop
-    while not killswitch.activated:
+    while (not killswitch.activated
+            and KeyboardHandleService.is_alive()):
 
         if q.qsize() > 0:
             event = q.get(timeout=1)

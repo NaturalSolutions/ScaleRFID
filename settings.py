@@ -47,10 +47,41 @@ KEYMAP = {
     48: '2b'
 }
 
-KILLSWITCH_KEYCODE = 30  # ought to be drawed from KEYMAP keys
+KILLSWITCH_KEYCODE = 30  # should be drawn from KEYMAP keys
 KILLSWITCH_THRESHOLD = .500  # ms
 
 RFID_READER_PORT = '/dev/ttyUSB0'
+
+NOTIFICATIONS = {
+    'STARTING': 'STARTING ... WAIT',
+    'DB_UPTODATE': 'DATABASE UP TO DATE',
+    'DB_NOTFOUND': 'DATABASE FILE NOT FOUND',
+    'DB_OUTDATED': 'DATABASE OUTDATED',
+    'RFIDREADER_NOTFOUND': 'RFID READER NOT FOUND',
+    'READY': 'SCAN READY',
+    'EXPORT_ERROR': 'ERROR WHILE GENERATING EXCEL FILE',
+    'UNREGISTERED_TAG': 'BIRD CHIP NOT FOUND',
+    'UNREGISTERED_SPECIMEN': 'BIRD NOT IN DATABASE',
+    'NO_POSITION': 'BIRD POSITION NOT IN DATABASE',
+    'ALREADY_WEIGHED': 'BIRD ALREADY WEIGHED',
+    'IMPOSSIBLE_WEIGHT': 'IMPOSSIBLE WEIGHT',
+}
+DIALOGS = {
+    'LOW_WEIGHT': '''\
+LOW WEIGHT
+1 - OK
+2 - CANCEL''',
+    'HIGH_WEIGHT': '''\
+HIGH WEIGHT
+1 - OK
+2 - CANCEL''',
+    'REMARKS': '''\
+ANY REMARKS ?
+1 - NO REMARK
+2 - SKINNY
+3 - FAT
+4 - OTHER PROBLEM''',
+}
 
 STATES = [
     'waiting',
@@ -85,7 +116,7 @@ TRANSITIONS = [
     {'trigger': 'init_query',        'source': ['querying',   'prompting_resolved'], 'dest': 'querying_init'},                                                                                          # noqa: E501
     {'trigger': 'init_weighing',     'source': ['weighing',   'prompting_resolved'], 'dest': 'weighing_init',                                                     'after': 'read_weight'},              # noqa: E501
     {'trigger': 'init_update',       'source': ['updating',   'prompting_resolved'], 'dest': 'updating_init'},                                                                                          # noqa: E501
-    {'trigger': 'init_prompt',       'source': ['prompting', ],        'dest': 'prompting_init',                                     'before': 'prompt_init',     'after': 'read_prompt'},              # noqa: E501
+    {'trigger': 'init_prompt',       'source': ['prompting',  'prompting_read'],     'dest': 'prompting_init'},                                                                                         # noqa: E501
     # check database update, create .CSV
     {'trigger': 'collect_tag',       'source': 'running',              'dest': 'tagreading',                                                                      'after': 'read_tag'},                 # noqa: E501
     {'trigger': 'read_tag',          'source': 'tagreading_init',      'dest': 'tagreading_read',                                    'before': 'reader_read',     'after': 'validate_tag'},             # noqa: E501
@@ -109,6 +140,6 @@ TRANSITIONS = [
     {'trigger': 'validate_update',   'source': 'updating_read',        'dest': 'updating_committed',                                                              'after': 'acknowledge'},  # COLLECT OPs COMMENTS  # noqa: E501
     {'trigger': 'read_prompt',       'source': 'prompting_init',       'dest': 'prompting_read',                                      'before': 'prompt_read',    'after': 'validate_prompt'},          # noqa: E501
     {'trigger': 'validate_prompt',   'source': 'prompting_read',       'dest': 'prompting_resolved',      'conditions': 'prompt_validate'},  # confirmed pathological weight or reconnected rdfidreader or acknowledged (outdated db or specimen unknown position or unregistered specimen or specimen invalid rf chip id)  # noqa: E501
-    {'trigger': 'acknowledge',       'source': ['tagreading_disconnected', 'querying_unknown', 'weighing_rejected', 'updating_failed', 'updating_committed'], 'dest': 'prompting', 'before': 'show_graph'},  # noqa: E501
+    {'trigger': 'acknowledge',       'source': ['tagreading_disconnected', 'querying_unknown', 'weighing_rejected', 'updating_failed', 'updating_committed'], 'dest': 'prompting'},                     # noqa: E501
     # collect operator's comments
 ]
