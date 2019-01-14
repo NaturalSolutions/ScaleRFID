@@ -140,6 +140,6 @@ TRANSITIONS = [
     {'trigger': 'validate_update',   'source': 'updating_read',        'dest': 'updating_committed',                                                              'after': 'acknowledge'},  # COLLECT OPs COMMENTS  # noqa: E501
     {'trigger': 'read_prompt',       'source': 'prompting_init',       'dest': 'prompting_read',                                      'before': 'prompt_read',    'after': 'validate_prompt'},          # noqa: E501
     {'trigger': 'validate_prompt',   'source': 'prompting_read',       'dest': 'prompting_resolved',      'conditions': 'prompt_validate'},  # confirmed pathological weight or reconnected rdfidreader or acknowledged (outdated db or specimen unknown position or unregistered specimen or specimen invalid rf chip id)  # noqa: E501
-    {'trigger': 'acknowledge',       'source': ['tagreading_disconnected', 'querying_unknown', 'weighing_rejected', 'updating_failed', 'updating_committed'], 'dest': 'prompting'},                     # noqa: E501
+    {'trigger': 'acknowledge',       'source': ['tagreading_disconnected', 'querying_unknown', 'weighing_rejected', 'updating_failed', 'updating_committed'], 'dest': 'prompting', 'after': 'read_prompt'},  # noqa: E501
     # collect operator's comments
 ]
