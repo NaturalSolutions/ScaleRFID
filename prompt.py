@@ -3,7 +3,8 @@ from datetime import datetime
 from time import sleep
 import logging
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class Prompt:
@@ -11,14 +12,20 @@ class Prompt:
     choices = dict()
     answer = ''
     ts = ''
+    type_ = ''
+    value_ = ''
 
-    def from_str(cls, msg):
+    def from_str(cls, type_, value_):
         # TODO: Screen interface
-        logger.debug(msg)
-        return cls.parse_msg(msg)
+        cls.type_ = type_
+        cls.value_ = value_
+        if type_ is not None and value_ is not None:
+            logger.debug(type_[value_])
+            return cls.parse_msg(type_[value_])
+        else:
+            return cls
 
-    @staticmethod
-    def __repr__():
+    def __repr__(self):
         return '<Prompt enquery={} choices={} answer={} ts={}>'.format(
             Prompt.enquery, Prompt.choices, Prompt.answer, Prompt.ts)
 
@@ -51,7 +58,7 @@ class Prompt:
                 choice = cls.choices.get(cls.answer, None)
                 return choice, cls.answer if choice else False
             # notification
-            elif cls.choices == dict():
+        elif cls.choices == {}:
                 logger.debug(
                     'Validation notification: enquery=%s', cls.enquery)
                 return True
@@ -60,8 +67,8 @@ class Prompt:
 
     @classmethod
     def read(cls):
+        logger.critical('PROMPT_READ: %s', cls.__str__(cls))
         while (len(cls.choices.keys()) > 0 and cls.answer == ''):
-            logger.debug('reading:%s', cls.__str__())
             sleep(.1)
 
 
@@ -76,7 +83,7 @@ if __name__ == '__main__':
     k = [30, 48, 46]
     shuffle(k)
     threads = []
-    blah = Prompt.from_str(Prompt, DIALOGS['HIGH_WEIGHT'])
+    blah = Prompt.from_str(Prompt, DIALOGS, 'HIGH_WEIGHT')
 
     def dispatch(event):
         _type = list(event.keys())[0]
@@ -141,6 +148,6 @@ if __name__ == '__main__':
         t.join()
 
     logger.debug('validating notification')
-    blah = Prompt.from_str(Prompt, NOTIFICATIONS['UNREGISTERED_SPECIMEN'])
+    blah = Prompt.from_str(Prompt, NOTIFICATIONS, 'UNREGISTERED_SPECIMEN')
     blah.read()
     valid = blah.validate()

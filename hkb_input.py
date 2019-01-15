@@ -10,7 +10,8 @@ assert os.geteuid() == 0, '''You must be root to read from the keyboard device i
 assert datetime.resolution <= timedelta(microseconds=1)  # noqa: S101
 µs = 1000000
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class HKB4Device():

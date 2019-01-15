@@ -173,14 +173,25 @@ try:
 
     dbname = ''.join(
         ['Prep_Weighing_test_', datetime.now().strftime('%Y%m%d'), '.db'])
-    DB.initDB(dbname, settings.DB_PATH)  # CHECK DB PERMS and OWNER == ROOT ?
-    prompt = Prompt.from_str(Prompt, '')
+    # Populate database with sample data
+    import sqlite3
+    conn = sqlite3.connect(os.path.join(settings.DB_PATH, dbname))
+    with open(
+            os.path.join(
+                settings.MODULE_ROOT, __package__, 'data', 'sample.sql'),
+            'r') as f:
+        sql_script = f.read()
+        conn.executescript(sql_script)
+
+    # DB.initDB(dbname, settings.DB_PATH)  # CHECK DB PERMS and OWNER == ROOT ?
+
+    prompt = Prompt.from_str(Prompt, None, '')
     system = System(
         reader,
-        DB.testSession(settings.DB_PATH)['session'],
+        DB.initDB(dbname, settings.DB_PATH),
         prompt
     )
-    logger.debug('Database in use: %s', os.path.join(settings.DB_PATH, dbname))
+    logger.debug('Database: %s', os.path.join(settings.DB_PATH, dbname))
 
     Machine = MachineFactory.get_predefined(graph=True, nested=True)
     machine = Machine(
@@ -190,8 +201,10 @@ try:
         initial='waiting',
         show_auto_transitions=False,
         title="Master",
-        show_conditions=True
+        show_conditions=True,
+        queued=True,
     )
+
     SystemService = mp.Process(
         name='SystemService',
         target=system.run,
@@ -219,7 +232,8 @@ try:
         time.sleep(.01)
 
     # fini
-    logger.critical('NORMAL OPERATION ENDING')
+    logger.critical('NORMAL ENDING OPERATION')
+    # system.show()
     shutdown(signal.SIGTERM)
 
 except (queue.Full, Exception) as e:

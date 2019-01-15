@@ -1,10 +1,8 @@
+import serial
 import logging
-logger = logging.getLogger()
 
-try:
-    import serial
-except ImportError:
-    logger.warning('Assuming mocking dev environment')
+
+logger = logging.getLogger()
 
 
 class RFIDReader():
@@ -32,7 +30,7 @@ class RFIDReader():
             #          return reader.read(nbytes)
             #     else:
             #          return reader.read()
-            # Mock
+            # FIXME: MOCKING
             # return ('1234567890ABCDEF'.join(
             return ('0007200EEA'.join(
                 [RFIDTag.id_match_start, RFIDTag.id_match_end])
